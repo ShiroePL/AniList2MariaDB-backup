@@ -36,12 +36,6 @@ def update_querry_to_db(query):
     cursor.execute(query)
     print(f"updated record ^^ {cleaned_romaji}")
 
-def insert_querry_to_db(query):
-    """Insert a record into the anime_list2 table in the database"""
-    global conn   
-    cursor = conn.cursor()
-    cursor.execute(query)
-    print("...added ^^ anime to database.")
     
 try: # open connection to database
     connection = conn
@@ -250,7 +244,6 @@ try: # open connection to database
                     update_querry_to_db(update_record)
                     conn.commit()
                     total_updated += 1
-                    print(f"updated record ^^ {cleaned_romaji}")
 
                 else:
                     print(f"No new updates for {cleaned_romaji}, stopping...")
