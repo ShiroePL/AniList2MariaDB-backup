@@ -6,6 +6,16 @@ import mysql.connector
 import api_keys
 from db_config import conn
 
+# ANSI escape sequences for colors
+RESET = "\033[0m"
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+WHITE = "\033[37m"
+
 i = 1
 j = 0
 how_many_anime_in_one_request = 50 #max 50
@@ -16,7 +26,7 @@ def how_many_rows(query):
     cursor = conn.cursor()
     cursor.execute(query)
     output = cursor.fetchall()
-    print("Total number of rows in table: ", cursor.rowcount)
+    print(f"{BLUE}Total number of rows in table: {cursor.rowcount}{RESET}")
     conn.commit()
     return output
 
@@ -34,7 +44,7 @@ def update_querry_to_db(query):
     global cleaned_romaji
     cursor = conn.cursor()
     cursor.execute(query)
-    print(f"updated record ^^ {cleaned_romaji}")
+    print(f"{MAGENTA}updated record ^^ {CYAN}{cleaned_romaji}{RESET}")
 
     
 try: # open connection to database
@@ -113,7 +123,7 @@ try: # open connection to database
 
             # take api response to python dictionary to parse json
         parsed_json = json.loads(response_frop_anilist.text)
-        print(f"page {i}")
+        print(f"{YELLOW}page {i}{RESET}")
 
         has_next_page = parsed_json["data"]["Page"]["pageInfo"]["hasNextPage"]
      # this variable is for adding new record, it needs to be the same as amount of all records in database to fullfill condition to add record 
@@ -197,7 +207,7 @@ try: # open connection to database
             #11 score,12 rewatched_times, 13 cover_image, 14 is_favourite, 15 anilist_url, 16 mal_url, 17 last_updated_on_site, 18 entry_createdAt, 19 user_stardetAt, 20 user_completedAt,
             #21 notes, 22 description)
  
-            print(f"Checking for mediaId: {mediaId_parsed}")
+            print(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
 
             record = check_record(mediaId_parsed)
 
@@ -246,12 +256,12 @@ try: # open connection to database
                     total_updated += 1
 
                 else:
-                    print(f"No new updates for {cleaned_romaji}, stopping...")
+                    print(f"{RED}No new updates for {RESET}{CYAN}{cleaned_romaji}{RESET}{RED}, stopping...{RESET}")
                     stop_update = True
                     break    
                 
         
-        print("Total updated: " + str(total_updated))
+        print(f"{MAGENTA}Total updated: {total_updated}{RESET}")
         conn.commit()
         i += 1
         if stop_update:
