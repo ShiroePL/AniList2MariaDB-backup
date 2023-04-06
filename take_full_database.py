@@ -243,8 +243,8 @@ try: # open connection to database
                 mal_url_parsed = "https://myanimelist.net/anime/" + str(idMal_parsed)
 
                     # formtting to timedate format from sql
-                updatedAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(updatedAt_parsed))
-                entry_createdAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(entry_createdAt_parsed))
+                updatedAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(updatedAt_parsed))
+                entry_createdAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry_createdAt_parsed))
 
                     # reformating user started and completed to date format from sql
                 user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
