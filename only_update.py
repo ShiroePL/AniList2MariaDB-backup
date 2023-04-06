@@ -20,6 +20,49 @@ i = 1
 j = 0
 how_many_anime_in_one_request = 50 #max 50
 
+id_or_name = input(f"Do you want to use, {GREEN}user id{RESET} or {GREEN}name?{RESET} (exit for exit :o)\n 1: id \n 2: name \n {CYAN}choice: {RESET}")
+if id_or_name == "exit":
+    print(f"{GREEN}bye bye :<{RESET}")
+    exit()
+elif id_or_name == "1":
+    user_id = input(f"{BLUE}Your id: {RESET}")
+    
+    if user_id == "":
+        user_id = 444059
+        print(f"{BLUE}Hello Madrus {user_id}{RESET}")
+    else:
+        print(f"{BLUE}your user id is: {user_id}{RESET}")
+elif id_or_name == "2":
+    user_name = input(f"{BLUE}Your name: {RESET}")
+    if user_name == "":
+        user_name = "Madrus"
+        print(f"{BLUE}Hello Madrus {user_name}{RESET}")
+    else:
+        print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
+
+#need to fetch id from anilist API for user name
+if id_or_name == "2":
+    variables_in_api = {
+        'name' : user_name
+    }
+
+    api_request  = '''
+        query ($name: String) {
+            User(name: $name) {
+                id
+                name
+                }
+            }
+        '''
+    url = 'https://graphql.anilist.co'
+        # sending api request
+    response_frop_anilist = requests.post(url, json={'query': api_request, 'variables': variables_in_api})
+        # take api response to python dictionary to parse json
+    parsed_json = json.loads(response_frop_anilist.text)
+    user_id = parsed_json["data"]["User"]["id"]
+    print(f"{BLUE}your user id is: {GREEN}{user_id}{RESET}")
+
+
 def how_many_rows(query):
     """Add a pair of question and answer to the general table in the database"""
     global conn
