@@ -18,10 +18,10 @@ CREATE TABLE `anime_list` (
   `anilist_url` varchar(255) DEFAULT NULL,
   `mal_url` varchar(255) DEFAULT NULL,
   `last_updated_on_site` timestamp NULL DEFAULT NULL,
-  `entry_createdAt` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `user_stardetAt` text DEFAULT '\'0000-00-00 00:00:00\'',
-  `user_completedAt` text DEFAULT NULL,
+  `entry_createdAt` timestamp NULL DEFAULT NULL,
+  `user_stardetAt` text DEFAULT 'not started',
+  `user_completedAt` text DEFAULT 'not completed',
   `notes` text DEFAULT NULL,
   `description` text DEFAULT NULL,
   PRIMARY KEY (`id_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=1293 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB AUTO_INCREMENT=1297 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -89,6 +89,14 @@ def update_querry_to_db(query):
     cursor.execute(query)
     print(f"{MAGENTA}updated record ^^ {CYAN}{cleaned_romaji}{RESET}")
 
+def insert_querry_to_db(query):
+    """Insert a record into the anime_list table in the database"""
+    global conn   
+    cursor = conn.cursor()
+    cursor.execute(query)
+    print(f"{MAGENTA}...added ^^ anime to database.{RESET}")
+
+
     
 try: # open connection to database
     connection = conn
@@ -107,11 +115,12 @@ try: # open connection to database
     
         variables_in_api = {
         'page' : i,
-        'perPage' : how_many_anime_in_one_request
+        'perPage' : how_many_anime_in_one_request,
+        'userId' : user_id
         }
 
         api_request  = '''
-            query ($page: Int, $perPage: Int) {
+            query ($page: Int, $perPage: Int, $userId: Int) {
     Page(page: $page, perPage: $perPage) {
         pageInfo {
         perPage
@@ -119,7 +128,7 @@ try: # open connection to database
         lastPage
         hasNextPage
         }
-        mediaList(userId: 444059, type: ANIME, sort: UPDATED_TIME_DESC) {
+        mediaList(userId: $userId, type: ANIME, sort: UPDATED_TIME_DESC) {
         status
         mediaId
         score
@@ -251,14 +260,19 @@ try: # open connection to database
             #21 notes, 22 description)
  
             print(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
-
+            
             record = check_record(mediaId_parsed)
+            # db_timestamp = int(time.mktime(record[18].timetuple()))
+            # updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
+            # print("db_timestamp: " + str(db_timestamp))
+            # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
 
             if record:
                 # Record exists
                 db_timestamp = int(time.mktime(record[18].timetuple()))
                 updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
-
+                #print("db_timestamp: " + str(db_timestamp))
+                #print("updatedAt_timestamp: " + str(updatedAt_timestamp))    
                 if db_timestamp != updatedAt_timestamp:
                     
                 #if record[18] != updatedAt_parsed:
@@ -302,8 +316,25 @@ try: # open connection to database
                     print(f"{RED}No new updates for {RESET}{CYAN}{cleaned_romaji}{RESET}{RED}, stopping...{RESET}")
                     stop_update = True
                     break    
-                
-        
+            else:
+                print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
+                    # building querry to insert to table
+                insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
+                `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+                `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
+                VALUES
+                ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', {9}, {10}, {11}, {12}, '{13}', '{14}', '{15}', '{16}', '{17}', '{18}', '{19}', '{20}', '{21}', '{22}');
+                """
+                    # inserting variables to ^^ {x}
+                insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
+                    season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+                    entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
+                    # using function from different file, I can't do this different
+                #print("insert_record: "+insert_record)
+                insert_querry_to_db(insert_record)
+                total_added+= 1    
+
+        print(f"{YELLOW}Total added: {total_added}{RESET}")
         print(f"{MAGENTA}Total updated: {total_updated}{RESET}")
         conn.commit()
         i += 1

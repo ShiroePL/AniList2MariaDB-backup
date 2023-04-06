@@ -6,6 +6,8 @@ import mysql.connector
 from db_config import conn
 from tqdm import tqdm
 import timeit
+from datetime import datetime
+
 # ANSI escape sequences for colors
 RESET = "\033[0m"
 RED = "\033[31m"
@@ -97,7 +99,7 @@ def insert_querry_to_db(query):
     global conn   
     cursor = conn.cursor()
     cursor.execute(query)
-    print("...added ^^ anime to database.")
+    print(f"{MAGENTA}...added ^^ anime to database.{RESET}")
     
 try: # open connection to database
     connection = conn
@@ -243,19 +245,19 @@ try: # open connection to database
                 mal_url_parsed = "https://myanimelist.net/anime/" + str(idMal_parsed)
 
                     # formtting to timedate format from sql
-                updatedAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(updatedAt_parsed))
-                entry_createdAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry_createdAt_parsed))
+                #updatedAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(updatedAt_parsed))
+                #entry_createdAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry_createdAt_parsed))
 
                     # reformating user started and completed to date format from sql
                 user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
                 user_completedAt_parsed = str(user_completedAt_year) + "-" + str(user_completedAt_month) + "-" + str(user_completedAt_day)
 
                     # if null make null to add to databese user started and completed
-                cleanded_user_startedAt = user_startedAt_parsed.replace('None-None-None' , 'null')
-                cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'null')
+                cleanded_user_startedAt = user_startedAt_parsed.replace('None-None-None' , 'not started')
+                cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'not completed')
                 episodes_parsed = 'NULL' if episodes_parsed is None else episodes_parsed
 
-                
+                #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
                 updated_at_for_loop = updatedAt["updatedAt"]
 
                 #cheat sheet numbers of columns from database
@@ -266,6 +268,30 @@ try: # open connection to database
                 
                 tqdm.write(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
                 record = check_record(mediaId_parsed)
+                #print(f"{RED}record : {record}{RESET}")
+                
+                if entry_createdAt_parsed == 'NULL':
+                    created_at_for_db = 'NULL'
+                elif entry_createdAt_parsed == 0:
+                    created_at_for_db = 'NULL'
+                else:
+                    created_at_for_db = f"FROM_UNIXTIME({entry_createdAt_parsed})"
+
+                if updatedAt_parsed == 'NULL':
+                    updatedAt_parsed_for_db = 'NULL'
+                elif updatedAt_parsed == 0:
+                    updatedAt_parsed_for_db = 'NULL'
+                else:
+                    updatedAt_parsed_for_db = f"FROM_UNIXTIME({updatedAt_parsed})"
+
+
+                # Convert the Unix timestamp to a Python datetime object
+                updatedAt_datetime = datetime.fromtimestamp(updatedAt_parsed)
+
+                # Convert the datetime object to a string in the correct format
+                updatedAt_parsed = updatedAt_datetime.strftime('%Y-%m-%d %H:%M:%S')
+                print("cleanded_user_startedAt : ", cleanded_user_startedAt)
+                print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
                     # Record exists
@@ -293,8 +319,8 @@ try: # open connection to database
                             is_favourite = '{14}',
                             anilist_url = '{15}',
                             mal_url = '{16}',
-                            last_updated_on_site = '{17}',
-                            entry_createdAt = '{18}',
+                            last_updated_on_site = {17},
+                            entry_createdAt = {18},
                             user_stardetAt = '{19}',
                             user_completedAt = '{20}',
                             notes = '{21}',
@@ -303,10 +329,10 @@ try: # open connection to database
                             """
                                 # inserting variables to ^^ {x} 
                         update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                        season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
-                        entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
+                        season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                        created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                             # using function from different file, I can't do this different 
-                        
+                        #print("update_record : ", update_record)
                         update_querry_to_db(update_record)
 
                         total_updated += 1
@@ -316,17 +342,17 @@ try: # open connection to database
                     print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
                         # building querry to insert to table
                     insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
-                    `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`,`last_updated_on_site`,
+                    `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
                     `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
                     VALUES
-                    ( {0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', {9}, {10}, {11}, {12}, '{13}', '{14}', '{15}', '{16}', '{17}', '{18}', '{19}', '{20}', '{21}', '{22}');
+                    ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', {9}, {10}, {11}, {12}, '{13}', '{14}', '{15}', '{16}', {17}, {18}, '{19}', '{20}', '{21}', '{22}');
                     """
                         # inserting variables to ^^ {x}
                     insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                    season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
-                    entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
+                    season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                    created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
                         # using function from different file, I can't do this different
-                    
+                    #print("insert_record: "+insert_record)
                     insert_querry_to_db(insert_record)
                     total_added+= 1    
                     
