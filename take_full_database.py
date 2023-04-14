@@ -79,23 +79,23 @@ def how_many_rows(query):
     return output
 
 def check_record(media_id):
-    """Check if a record with the given media_id exists in the anime_list2 table in the database"""
+    """Check if a record with the given media_id exists in the anime_list22 table in the database"""
     global conn
-    check_record_query = "SELECT * FROM anime_list WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM anime_list2 WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
 
 def update_querry_to_db(query):
-    """Update a record in the anime_list table in the database"""
+    """Update a record in the anime_list2 table in the database"""
     global conn
     global cleaned_romaji
     cursor = conn.cursor()
     cursor.execute(query)
-    print(f"updated record ^^ {cleaned_romaji}")
+    print(f"{BLUE}updated record ^^ {cleaned_romaji}{RESET}")
 
 def insert_querry_to_db(query):
-    """Insert a record into the anime_list table in the database"""
+    """Insert a record into the anime_list2 table in the database"""
     global conn   
     cursor = conn.cursor()
     cursor.execute(query)
@@ -106,7 +106,7 @@ try: # open connection to database
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
         # need to take all records from database to compare entries
-    take_all_records = "select id_anilist, last_updated_on_site from anime_list"
+    take_all_records = "select id_anilist, last_updated_on_site from anime_list2"
     #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
@@ -290,18 +290,32 @@ try: # open connection to database
 
                 # Convert the datetime object to a string in the correct format
                 updatedAt_parsed = updatedAt_datetime.strftime('%Y-%m-%d %H:%M:%S')
-                print("cleanded_user_startedAt : ", cleanded_user_startedAt)
-                print("cleanded_user_completedAt : ", cleanded_user_completedAt)
+                #print("cleanded_user_startedAt : ", cleanded_user_startedAt)
+                #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
-                    # Record exists
-                    db_timestamp = int(time.mktime(record[18].timetuple()))
-                    updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
+                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    # # Record exists
+                    # print(f"{RED}record : {record}{RESET}")
+                    if record[18] is not None:
+                        db_timestamp = int(time.mktime(record[18].timetuple()))
+                    else:
+                        db_timestamp = None
 
+                    if db_timestamp is not None and updatedAt_parsed is not None:
+                        updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
+                    else:
+                        updatedAt_timestamp = None
+
+                    # print(f"updatedAt_parsed: {updatedAt_parsed}")
+                    # print("db_timestamp: " + str(db_timestamp))
+                    # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
+                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    #       
                     if db_timestamp != updatedAt_timestamp:
                         
                     #if record[18] != updatedAt_parsed:
-                        update_querry = """ UPDATE `anime_list` SET  
+                        update_querry = """ UPDATE `anime_list2` SET  
                             id_anilist = {0},
                             id_mal = {1},
                             title_english = '{2}',
@@ -336,12 +350,12 @@ try: # open connection to database
                         update_querry_to_db(update_record)
 
                         total_updated += 1
-                        print(f"{BLUE}updated record ^^ {cleaned_romaji}{RESET}")
+                        
 
                 else:
                     print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
                         # building querry to insert to table
-                    insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
+                    insert_querry = """INSERT INTO `anime_list2`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
                     `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
                     `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
                     VALUES
