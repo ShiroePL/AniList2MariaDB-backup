@@ -294,10 +294,10 @@ try: # open connection to database
                 #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
-                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    #print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
                     # # Record exists
-                    # print(f"{RED}record : {record}{RESET}")
-                    if record[18] is not None:
+                    #print(f"{RED}record : {record}{RESET}")
+                    if record[18] is not None: # 18 is LAST UPDATED ON SITE
                         db_timestamp = int(time.mktime(record[18].timetuple()))
                     else:
                         db_timestamp = None

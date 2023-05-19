@@ -79,15 +79,15 @@ def how_many_rows(query):
     return output
 
 def check_record(media_id):
-    """Check if a record with the given media_id exists in the anime_list22 table in the database"""
+    """Check if a record with the given media_id exists in the manga_list table in the database"""
     global conn
-    check_record_query = "SELECT * FROM anime_list2 WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM manga_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
 
 def update_querry_to_db(query):
-    """Update a record in the anime_list2 table in the database"""
+    """Update a record in the manga_list table in the database"""
     global conn
     global cleaned_romaji
     cursor = conn.cursor()
@@ -95,18 +95,18 @@ def update_querry_to_db(query):
     print(f"{BLUE}updated record ^^ {cleaned_romaji}{RESET}")
 
 def insert_querry_to_db(query):
-    """Insert a record into the anime_list2 table in the database"""
+    """Insert a record into the manga_list table in the database"""
     global conn   
     cursor = conn.cursor()
     cursor.execute(query)
-    print(f"{MAGENTA}...added ^^ anime to database.{RESET}")
+    print(f"{MAGENTA}...added ^^ manga to database.{RESET}")
     
 try: # open connection to database
     connection = conn
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
         # need to take all records from database to compare entries
-    take_all_records = "select id_anilist, last_updated_on_site from anime_list2"
+    take_all_records = "select id_anilist, last_updated_on_site from manga_list"
     #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
@@ -133,7 +133,7 @@ try: # open connection to database
             lastPage
             hasNextPage
             }
-            mediaList(userId: $userId, type: ANIME) {
+            mediaList(userId: $userId, type: Manga) {
             status
             mediaId
             score
@@ -160,9 +160,7 @@ try: # open connection to database
                 format
                 status
                 description
-                seasonYear
-                season
-                episodes
+                chapters
                 coverImage {
                 large
                 }
@@ -194,7 +192,7 @@ try: # open connection to database
                     # title
                 english = romaji = parsed_json["data"]["Page"]["mediaList"][j]["media"]["title"]
                     # mediaList - media
-                idMal = formatt = air_status = seasonYear = season_period = episodes = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
+                idMal = formatt = air_status  = chapters = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
                     # coverimage
                 large = parsed_json["data"]["Page"]["mediaList"][j]["media"]["coverImage"]
                     # user startedAt
@@ -213,10 +211,10 @@ try: # open connection to database
                 idMal_parsed = idMal["idMal"]
                 format_parsed = formatt["format"]
                 air_status_parsed = air_status["status"]
-                seasonYear_parsed = seasonYear["seasonYear"]
+                
                 updatedAt_parsed = updatedAt["updatedAt"]
-                season_period_parsed = season_period["season"]
-                episodes_parsed = episodes["episodes"]
+                
+                chapters_parsed = chapters["chapters"]
                 large_parsed = large["large"]
                 isFavourite_parsed = isFavourite["isFavourite"]
                 siteUrl_parsed = siteUrl["siteUrl"]
@@ -242,12 +240,9 @@ try: # open connection to database
                 isFavourite_parsed = str(isFavourite_parsed).replace("False" , "0")
                 cleaned_description = str(description_parsed).replace("<br><br>" , '<br>')
                 cleaned_description = str(cleaned_description).replace("'" , '"')       
-                mal_url_parsed = "https://myanimelist.net/anime/" + str(idMal_parsed)
+                mal_url_parsed = "https://myanimelist.net/manga/" + str(idMal_parsed)
 
-                    # formtting to timedate format from sql
-                #updatedAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(updatedAt_parsed))
-                #entry_createdAt_parsed = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry_createdAt_parsed))
-
+    
                     # reformating user started and completed to date format from sql
                 user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
                 user_completedAt_parsed = str(user_completedAt_year) + "-" + str(user_completedAt_month) + "-" + str(user_completedAt_day)
@@ -255,7 +250,7 @@ try: # open connection to database
                     # if null make null to add to databese user started and completed
                 cleanded_user_startedAt = user_startedAt_parsed.replace('None-None-None' , 'not started')
                 cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'not completed')
-                episodes_parsed = 'NULL' if episodes_parsed is None else episodes_parsed
+                chapters_parsed = 'NULL' if chapters_parsed is None else chapters_parsed
 
                 #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
                 updated_at_for_loop = updatedAt["updatedAt"]
@@ -294,10 +289,10 @@ try: # open connection to database
                 #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
-                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
                     # # Record exists
-                    # print(f"{RED}record : {record}{RESET}")
-                    if record[18] is not None:
+                    print(f"{RED}record : {record}{RESET}")
+                    if record[18] is not None: #!!!!!!!!!!!!!!!!!!!!!! 18 is LAST UPDATED ON SITE
                         db_timestamp = int(time.mktime(record[18].timetuple()))
                     else:
                         db_timestamp = None
@@ -343,7 +338,7 @@ try: # open connection to database
                             """
                                 # inserting variables to ^^ {x} 
                         update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                        season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                        season_period_parsed, chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
                         created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                             # using function from different file, I can't do this different 
                         #print("update_record : ", update_record)
@@ -363,7 +358,7 @@ try: # open connection to database
                     """
                         # inserting variables to ^^ {x}
                     insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                    season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                    season_period_parsed, chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
                     created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
                         # using function from different file, I can't do this different
                     #print("insert_record: "+insert_record)

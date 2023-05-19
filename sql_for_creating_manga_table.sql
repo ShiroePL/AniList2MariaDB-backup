@@ -1,18 +1,16 @@
-CREATE TABLE `anime_list` (
+CREATE TABLE `manga_list` (
   `id_default` int(5) NOT NULL AUTO_INCREMENT,
   `id_anilist` int(11) NOT NULL,
   `id_mal` int(11) DEFAULT NULL,
   `title_english` varchar(255) DEFAULT NULL,
   `title_romaji` varchar(255) DEFAULT NULL,
   `on_list_status` varchar(255) DEFAULT NULL,
-  `air_status` varchar(255) DEFAULT NULL,
+  `status` varchar(255) DEFAULT NULL,
   `media_format` varchar(255) DEFAULT NULL,
-  `season_year` text DEFAULT NULL,
-  `season_period` text DEFAULT NULL,
-  `all_episodes` int(11) DEFAULT NULL,
-  `episodes_progress` int(11) DEFAULT NULL,
+  `all_chapters` int(11) DEFAULT NULL,
+  `chapters_progress` int(11) DEFAULT NULL,
   `score` float DEFAULT NULL,
-  `rewatched_times` int(11) DEFAULT NULL,
+  `reread_times` int(11) DEFAULT NULL,
   `cover_image` varchar(255) DEFAULT NULL,
   `is_favourite` varchar(10) DEFAULT '0',
   `anilist_url` varchar(255) DEFAULT NULL,
@@ -24,4 +22,4 @@ CREATE TABLE `anime_list` (
   `notes` text DEFAULT NULL,
   `description` text DEFAULT NULL,
   PRIMARY KEY (`id_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=1297 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB AUTO_INCREMENT=1304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
