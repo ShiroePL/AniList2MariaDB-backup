@@ -133,7 +133,7 @@ try: # open connection to database
             lastPage
             hasNextPage
             }
-            mediaList(userId: $userId, type: Manga) {
+            mediaList(userId: $userId, type: MANGA) {
             status
             mediaId
             score
@@ -192,7 +192,7 @@ try: # open connection to database
                     # title
                 english = romaji = parsed_json["data"]["Page"]["mediaList"][j]["media"]["title"]
                     # mediaList - media
-                idMal = formatt = air_status  = chapters = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
+                idMal = formatt = status  = chapters = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
                     # coverimage
                 large = parsed_json["data"]["Page"]["mediaList"][j]["media"]["coverImage"]
                     # user startedAt
@@ -210,7 +210,7 @@ try: # open connection to database
                 romaji_parsed = romaji["romaji"]
                 idMal_parsed = idMal["idMal"]
                 format_parsed = formatt["format"]
-                air_status_parsed = air_status["status"]
+                status_parsed = status["status"]
                 
                 updatedAt_parsed = updatedAt["updatedAt"]
                 
@@ -256,7 +256,7 @@ try: # open connection to database
                 updated_at_for_loop = updatedAt["updatedAt"]
 
                 #cheat sheet numbers of columns from database
-                #(0 id_anilist, 1 id_mal, 2 title_english, 3 title_romaji, 4 on_list_status, 5 air_status,6 media_format,7 season_year,8 season_period,9 all_episodes,10 episodes_progress,
+                #(0 id_anilist, 1 id_mal, 2 title_english, 3 title_romaji, 4 on_list_status, 5 status,6 media_format,7 season_year,8 season_period,9 all_episodes,10 episodes_progress,
                 #11 score,12 rewatched_times, 13 cover_image, 14 is_favourite, 15 anilist_url, 16 mal_url, 17 last_updated_on_site, 18 entry_createdAt, 19 user_stardetAt, 20 user_completedAt,
                 #21 notes, 22 description)
     
@@ -279,7 +279,10 @@ try: # open connection to database
                 else:
                     updatedAt_parsed_for_db = f"FROM_UNIXTIME({updatedAt_parsed})"
 
-
+                #print("idMal_parsed : ", idMal_parsed)
+                if idMal_parsed is None:
+                    idMal_parsed = 0
+                #print("changed idMal_parsed : ", idMal_parsed)
                 # Convert the Unix timestamp to a Python datetime object
                 updatedAt_datetime = datetime.fromtimestamp(updatedAt_parsed)
 
@@ -289,11 +292,11 @@ try: # open connection to database
                 #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
-                    print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    print(f"rekors 16 : {record[16]} for anime {romaji_parsed}")
                     # # Record exists
                     print(f"{RED}record : {record}{RESET}")
-                    if record[18] is not None: #!!!!!!!!!!!!!!!!!!!!!! 18 is LAST UPDATED ON SITE
-                        db_timestamp = int(time.mktime(record[18].timetuple()))
+                    if record[16] is not None: #!!!!!!!!!!!!!!!!!!!!!! 18 is LAST UPDATED ON SITE
+                        db_timestamp = int(time.mktime(record[16].timetuple()))
                     else:
                         db_timestamp = None
 
@@ -310,35 +313,33 @@ try: # open connection to database
                     if db_timestamp != updatedAt_timestamp:
                         
                     #if record[18] != updatedAt_parsed:
-                        update_querry = """ UPDATE `anime_list2` SET  
+                        update_querry = """ UPDATE `manga_list` SET  
                             id_anilist = {0},
                             id_mal = {1},
                             title_english = '{2}',
                             title_romaji = '{3}',
                             on_list_status = '{4}',
-                            air_status = '{5}',
+                            status = '{5}',
                             media_format = '{6}',
-                            season_year = '{7}',
-                            season_period = '{8}',
-                            all_episodes = {9},
-                            episodes_progress = {10},
-                            score = {11},
-                            rewatched_times = {12},
-                            cover_image = '{13}',
-                            is_favourite = '{14}',
-                            anilist_url = '{15}',
-                            mal_url = '{16}',
-                            last_updated_on_site = {17},
-                            entry_createdAt = {18},
-                            user_stardetAt = '{19}',
-                            user_completedAt = '{20}',
-                            notes = '{21}',
-                            description = '{22}'
+                            all_chapters = {7},
+                            chapters_progress = {8},
+                            score = {9},
+                            reread_times = {10},
+                            cover_image = '{11}',
+                            is_favourite = '{12}',
+                            anilist_url = '{13}',
+                            mal_url = '{14}',
+                            last_updated_on_site = {15},
+                            entry_createdAt = {16},
+                            user_stardetAt = '{17}',
+                            user_completedAt = '{18}',
+                            notes = '{19}',
+                            description = '{20}'
                             WHERE id_anilist = {0};
                             """
                                 # inserting variables to ^^ {x} 
-                        update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                        season_period_parsed, chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                        update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
+                        chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
                         created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                             # using function from different file, I can't do this different 
                         #print("update_record : ", update_record)
@@ -348,21 +349,23 @@ try: # open connection to database
                         
 
                 else:
-                    print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
+                    print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
                         # building querry to insert to table
-                    insert_querry = """INSERT INTO `anime_list2`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
-                    `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+                    insert_querry = """INSERT INTO `manga_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
+                     `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
                     `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
                     VALUES
-                    ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', {9}, {10}, {11}, {12}, '{13}', '{14}', '{15}', '{16}', {17}, {18}, '{19}', '{20}', '{21}', '{22}');
+                    ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', {7}, {8}, {9}, {10}, '{11}', '{12}', '{13}', '{14}', {15}, {16}, '{17}', '{18}', '{19}', '{20}');
                     """
                         # inserting variables to ^^ {x}
-                    insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                    season_period_parsed, chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                    insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
+                    chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
                     created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
                         # using function from different file, I can't do this different
                     #print("insert_record: "+insert_record)
+                    print("insert record: ", insert_record)
                     insert_querry_to_db(insert_record)
+                    print("inserted??")
                     total_added+= 1    
                     
             print(f"{YELLOW}Total added: {total_added}{RESET}")
