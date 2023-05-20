@@ -34,15 +34,15 @@ def how_many_rows(query):
     return output
 
 def check_record(media_id):
-    """Check if a record with the given media_id exists in the anime_list table in the database"""
+    """Check if a record with the given media_id exists in the manga_list table in the database"""
     global conn
-    check_record_query = "SELECT * FROM anime_list WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM manga_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
 
 def update_querry_to_db(query):
-    """Update a record in the anime_list table in the database"""
+    """Update a record in the manga_list table in the database"""
     global conn
     global cleaned_romaji
     cursor = conn.cursor()
@@ -50,11 +50,11 @@ def update_querry_to_db(query):
     print(f"{MAGENTA}updated record ^^ {CYAN}{cleaned_romaji}{RESET}")
 
 def insert_querry_to_db(query):
-    """Insert a record into the anime_list table in the database"""
+    """Insert a record into the manga_list table in the database"""
     global conn   
     cursor = conn.cursor()
     cursor.execute(query)
-    print("...added ^^ anime to database.")
+    print("...added ^^ manga to database.")
 
 
     
@@ -63,7 +63,7 @@ try: # open connection to database
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
         # need to take all records from database to compare entries
-    take_all_records = "select id_anilist, last_updated_on_site from anime_list"
+    take_all_records = "select id_anilist, last_updated_on_site from manga_list"
     #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
@@ -86,7 +86,7 @@ Page(page: $page, perPage: $perPage) {
     lastPage
     hasNextPage
     }
-    mediaList(userId: 444059, type: ANIME, sort: UPDATED_TIME_DESC) {
+    mediaList(userId: 444059, type: MANGA, sort: UPDATED_TIME_DESC) {
     status
     mediaId
     score
@@ -113,9 +113,7 @@ Page(page: $page, perPage: $perPage) {
         format
         status
         description
-        seasonYear
-        season
-        episodes
+        chapters
         coverImage {
         large
         }
@@ -145,7 +143,7 @@ Page(page: $page, perPage: $perPage) {
             # title
         english = romaji = parsed_json["data"]["Page"]["mediaList"][j]["media"]["title"]
             # mediaList - media
-        idMal = formatt = air_status = seasonYear = season_period = episodes = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
+        idMal = formatt = status  = chapters = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
             # coverimage
         large = parsed_json["data"]["Page"]["mediaList"][j]["media"]["coverImage"]
             # user startedAt
@@ -163,11 +161,11 @@ Page(page: $page, perPage: $perPage) {
         romaji_parsed = romaji["romaji"]
         idMal_parsed = idMal["idMal"]
         format_parsed = formatt["format"]
-        air_status_parsed = air_status["status"]
-        seasonYear_parsed = seasonYear["seasonYear"]
+        status_parsed = status["status"]
+        
         updatedAt_parsed = updatedAt["updatedAt"]
-        season_period_parsed = season_period["season"]
-        episodes_parsed = episodes["episodes"]
+        
+        chapters_parsed = chapters["chapters"]
         large_parsed = large["large"]
         isFavourite_parsed = isFavourite["isFavourite"]
         siteUrl_parsed = siteUrl["siteUrl"]
@@ -193,7 +191,7 @@ Page(page: $page, perPage: $perPage) {
         isFavourite_parsed = str(isFavourite_parsed).replace("False" , "0")
         cleaned_description = str(description_parsed).replace("<br><br>" , '<br>')
         cleaned_description = str(cleaned_description).replace("'" , '"')       
-        mal_url_parsed = "https://myanimelist.net/anime/" + str(idMal_parsed)
+        mal_url_parsed = "https://myanimelist.net/manga/" + str(idMal_parsed)
 
             # reformating user started and completed to date format from sql
         user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
@@ -202,8 +200,9 @@ Page(page: $page, perPage: $perPage) {
             # if null make null to add to databese user started and completed
         cleanded_user_startedAt = user_startedAt_parsed.replace('None-None-None' , 'not started')
         cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'not completed')
-        episodes_parsed = 0 if episodes_parsed is None else episodes_parsed
-        
+        chapters_parsed = 'NULL' if chapters_parsed is None else chapters_parsed
+        if idMal_parsed is None:
+            idMal_parsed = 0
 
         print(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
         
@@ -224,8 +223,8 @@ Page(page: $page, perPage: $perPage) {
             #print(f"rekord 18 : {record[18]} for anime {romaji_parsed}")
                 # Record exists
             print(f"{WHITE}record : {record}{RESET}")
-            if record[18] is not None:
-                    db_timestamp = int(time.mktime(record[18].timetuple()))
+            if record[16] is not None:
+                    db_timestamp = int(time.mktime(record[16].timetuple()))
             else:
                 db_timestamp = None
 
@@ -240,42 +239,42 @@ Page(page: $page, perPage: $perPage) {
             # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
             # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}") 
             #  
+            
             if db_timestamp != updatedAt_timestamp:
                 
             
-                update_querry = """ UPDATE `anime_list` SET  
+                update_querry = """ UPDATE `manga_list` SET  
                     id_anilist = {0},
                     id_mal = {1},
                     title_english = '{2}',
                     title_romaji = '{3}',
                     on_list_status = '{4}',
-                    air_status = '{5}',
+                    status = '{5}',
                     media_format = '{6}',
-                    season_year = '{7}',
-                    season_period = '{8}',
-                    all_episodes = {9},
-                    episodes_progress = {10},
-                    score = {11},
-                    rewatched_times = {12},
-                    cover_image = '{13}',
-                    is_favourite = '{14}',
-                    anilist_url = '{15}',
-                    mal_url = '{16}',
-                    last_updated_on_site = '{17}',
-                    entry_createdAt = '{18}',
-                    user_stardetAt = '{19}',
-                    user_completedAt = '{20}',
-                    notes = '{21}',
-                    description = '{22}'
+                    all_chapters = {7},
+                    chapters_progress = {8},
+                    score = {9},
+                    reread_times = {10},
+                    cover_image = '{11}',
+                    is_favourite = '{12}',
+                    anilist_url = '{13}',
+                    mal_url = '{14}',
+                    last_updated_on_site = '{15}',
+                    entry_createdAt = '{16}',
+                    user_stardetAt = '{17}',
+                    user_completedAt = '{18}',
+                    notes = '{19}',
+                    description = '{20}'
                     WHERE id_anilist = {0};
                     """
                         # inserting variables to ^^ {x} 
-                update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+                update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed,
+                 chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
                 entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                     # using function from different file, I can't do this different 
-                
+                #print("!!!!!!!!!!!!!!!!!!!!!!!update record: " + update_record)
                 update_querry_to_db(update_record)
+                
                 #updated anime
                 conn.commit()
                 total_updated += 1
@@ -287,21 +286,21 @@ Page(page: $page, perPage: $perPage) {
                     
         else:
             
-            print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
+            print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
                 # building querry to insert to table
-            insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
-            `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+            insert_querry = """INSERT INTO `manga`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
+             `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
             `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
             VALUES
-            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
 
-            insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+            insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
+                chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
                 entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
                 # using function from different file, I can't do this different
             cursor.execute(insert_querry, insert_record_values)
-            print("...added ^^ anime to database.")
+            print("...added ^^ manga to database.")
             total_added+= 1 
              
 
