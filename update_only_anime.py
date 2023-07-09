@@ -36,6 +36,7 @@ def how_many_rows(query):
 def check_record(media_id):
     """Check if a record with the given media_id exists in the anime_list table in the database"""
     global conn
+    global cursor
     check_record_query = "SELECT * FROM anime_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
@@ -289,19 +290,61 @@ Page(page: $page, perPage: $perPage) {
             
             print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
                 # building querry to insert to table
-            insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
-            `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
-            `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
-            VALUES
-            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            """
+            # insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
+            # `season_period`, `all_episodes`, `episodes_progress`, `score`,`rewatched_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+            # `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
+            # VALUES
+            # (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            # """
 
-            insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
-                season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
-                entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
-                # using function from different file, I can't do this different
-            cursor.execute(insert_querry, insert_record_values)
-            print("...added ^^ anime to database.")
+            # insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
+            #     season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+            #     entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
+            #     # using function from different file, I can't do this different
+            # cursor.execute(insert_querry, insert_record_values)
+            #print("...added ^^ anime to database.")
+
+            add_querry = """ UPDATE `anime_list` SET  
+                    id_anilist = {0},
+                    id_mal = {1},
+                    title_english = '{2}',
+                    title_romaji = '{3}',
+                    on_list_status = '{4}',
+                    air_status = '{5}',
+                    media_format = '{6}',
+                    season_year = '{7}',
+                    season_period = '{8}',
+                    all_episodes = {9},
+                    episodes_progress = {10},
+                    score = {11},
+                    rewatched_times = {12},
+                    cover_image = '{13}',
+                    is_favourite = '{14}',
+                    anilist_url = '{15}',
+                    mal_url = '{16}',
+                    last_updated_on_site = '{17}',
+                    entry_createdAt = '{18}',
+                    user_stardetAt = '{19}',
+                    user_completedAt = '{20}',
+                    notes = '{21}',
+                    description = '{22}'
+                    WHERE id_anilist = {0};
+                    """
+                        # inserting variables to ^^ {x} 
+            add_record = (add_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, air_status_parsed, format_parsed, seasonYear_parsed,
+            season_period_parsed, episodes_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+            entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
+                # using function from different file, I can't do this different 
+            
+            insert_querry_to_db(add_record)
+
+
+
+
+
+
+
+
             total_added+= 1 
              
 
