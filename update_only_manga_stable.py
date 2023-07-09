@@ -288,19 +288,58 @@ Page(page: $page, perPage: $perPage) {
             
             print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
                 # building querry to insert to table
-            insert_querry = """INSERT INTO `manga`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
-             `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
-            `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
-            VALUES
-            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            """
+            # insert_querry = """INSERT INTO `manga_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
+            #  `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+            # `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
+            # VALUES
+            # (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            # """
 
-            insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
+            # insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
+            #     chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
+            #     entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
+            #     # using function from different file, I can't do this different
+            # cursor.execute(insert_querry, insert_record_values)
+
+########################################################################
+            add_querry = """ INSERT INTO `manga_list` SET  
+                    id_anilist = {0},
+                    id_mal = {1},
+                    title_english = '{2}',
+                    title_romaji = '{3}',
+                    on_list_status = '{4}',
+                    status = '{5}',
+                    media_format = '{6}',
+                    all_chapters = {7},
+                    chapters_progress = {8},
+                    score = {9},
+                    reread_times = {10},
+                    cover_image = '{11}',
+                    is_favourite = '{12}',
+                    anilist_url = '{13}',
+                    mal_url = '{14}',
+                    last_updated_on_site = '{15}',
+                    entry_createdAt = '{16}',
+                    user_stardetAt = '{17}',
+                    user_completedAt = '{18}',
+                    notes = '{19}',
+                    description = '{20}';
+                    """
+                        # inserting variables to ^^ {x} 
+            add_record = (add_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed,
                 chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
-                entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
-                # using function from different file, I can't do this different
-            cursor.execute(insert_querry, insert_record_values)
-            print("...added ^^ manga to database.")
+            entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
+                # using function from different file, I can't do this different 
+            #print("!!!!!!!!!!!!!!!!!!!!!!!update record: " + update_record)
+            insert_querry_to_db(add_record)
+
+
+
+#########################################################################################
+
+
+
+            #print("...added ^^ manga to database.")
             total_added+= 1 
              
 
