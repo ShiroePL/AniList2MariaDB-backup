@@ -107,7 +107,6 @@ try: # open connection to database
     cursor = connection.cursor()
         # need to take all records from database to compare entries
     take_all_records = "select id_anilist, last_updated_on_site from manga_list"
-    #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
     
@@ -242,7 +241,6 @@ try: # open connection to database
                 cleaned_description = str(cleaned_description).replace("'" , '"')       
                 mal_url_parsed = "https://myanimelist.net/manga/" + str(idMal_parsed)
 
-    
                     # reformating user started and completed to date format from sql
                 user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
                 user_completedAt_parsed = str(user_completedAt_year) + "-" + str(user_completedAt_month) + "-" + str(user_completedAt_day)
@@ -252,7 +250,6 @@ try: # open connection to database
                 cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'not completed')
                 chapters_parsed = 'NULL' if chapters_parsed is None else chapters_parsed
 
-                #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
                 updated_at_for_loop = updatedAt["updatedAt"]
 
                 #cheat sheet numbers of columns from database
@@ -263,7 +260,6 @@ try: # open connection to database
                 
                 tqdm.write(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
                 record = check_record(mediaId_parsed)
-                #print(f"{RED}record : {record}{RESET}")
                 
                 if entry_createdAt_parsed == 'NULL':
                     created_at_for_db = 'NULL'
@@ -279,23 +275,18 @@ try: # open connection to database
                 else:
                     updatedAt_parsed_for_db = f"FROM_UNIXTIME({updatedAt_parsed})"
 
-                #print("idMal_parsed : ", idMal_parsed)
                 if idMal_parsed is None:
                     idMal_parsed = 0
-                #print("changed idMal_parsed : ", idMal_parsed)
                 # Convert the Unix timestamp to a Python datetime object
                 updatedAt_datetime = datetime.fromtimestamp(updatedAt_parsed)
 
                 # Convert the datetime object to a string in the correct format
                 updatedAt_parsed = updatedAt_datetime.strftime('%Y-%m-%d %H:%M:%S')
-                #print("cleanded_user_startedAt : ", cleanded_user_startedAt)
-                #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
-                    print(f"rekors 16 : {record[16]} for anime {romaji_parsed}")
                     # # Record exists
                     print(f"{RED}record : {record}{RESET}")
-                    if record[16] is not None: #!!!!!!!!!!!!!!!!!!!!!! 18 is LAST UPDATED ON SITE
+                    if record[16] is not None: #
                         db_timestamp = int(time.mktime(record[16].timetuple()))
                     else:
                         db_timestamp = None
@@ -304,15 +295,8 @@ try: # open connection to database
                         updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
                     else:
                         updatedAt_timestamp = None
-
-                    # print(f"updatedAt_parsed: {updatedAt_parsed}")
-                    # print("db_timestamp: " + str(db_timestamp))
-                    # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
-                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
-                    #       
+            
                     if db_timestamp != updatedAt_timestamp:
-                        
-                    #if record[18] != updatedAt_parsed:
                         update_querry = """ UPDATE `manga_list` SET  
                             id_anilist = {0},
                             id_mal = {1},
@@ -347,7 +331,6 @@ try: # open connection to database
 
                         total_updated += 1
                         
-
                 else:
                     print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
                         # building querry to insert to table
@@ -360,12 +343,11 @@ try: # open connection to database
                         # inserting variables to ^^ {x}
                     insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
                     chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
-                    created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))             
+                    created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))     
+
                         # using function from different file, I can't do this different
-                    #print("insert_record: "+insert_record)
-                    print("insert record: ", insert_record)
                     insert_querry_to_db(insert_record)
-                    print("inserted??")
+                    
                     total_added+= 1    
                     
             print(f"{YELLOW}Total added: {total_added}{RESET}")
@@ -373,7 +355,6 @@ try: # open connection to database
             
             conn.commit()
             progress_bar.update(1)
-            
             i += 1
 
 except mysql.connector.Error as e: #if cannot connect to database
