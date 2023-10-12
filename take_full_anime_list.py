@@ -32,15 +32,17 @@ elif id_or_name == "1":
     user_id = input(f"{BLUE}Your id: {RESET}")
     
     if user_id == "":
-        user_id = 444059
-        print(f"{BLUE}Hello Madrus{RESET}")
+        # plese put your user id
+        print(f"{RED}You need to put your user id!{RESET}")
+        exit()
     else:
         print(f"{BLUE}your user id is: {user_id}{RESET}")
 elif id_or_name == "2":
     user_name = input(f"{BLUE}Your name: {RESET}")
     if user_name == "":
-        user_name = "Madrus"
-        print(f"{BLUE}Hello Madrus{RESET}")
+        # plese put your name
+        print(f"{RED}You need to put your user name!{RESET}")
+        exit()
     else:
         print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
 
