@@ -18,7 +18,7 @@
 *.httr-oauth*
 #api klucze
 api_keys.py
-
+api_keys_template.py
 
 
 
