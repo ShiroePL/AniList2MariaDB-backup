@@ -1,5 +1,5 @@
 # AniList to MariaDB Backup
-This Python application allows you to back up your anime and manga lists from the AniList website to a local MariaDB database. The program offers two main functionalities:
+This Python application allows you to back up your anime and manga lists from the [AniList] website to a local MariaDB database. The program offers two main functionalities:
 1. **Full Backup**: Backs up your complete list of anime/manga.
 2. **Recent Update**: Automatically updates the list, adding or changing anime/manga entries until it detects that there are no more new or recently updated items to add.
    
@@ -48,3 +48,9 @@ To run the program, execute one of the following scripts:
 * Recent Manga List Update:
   ```bash
   python  update_only_manga.py
+
+**Links**
+
+[Anilist] : https://anilist.co/home
+
+[Anilist]: https://anilist.co/home
