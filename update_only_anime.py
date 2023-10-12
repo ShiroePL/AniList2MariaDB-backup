@@ -19,9 +19,52 @@ WHITE = "\033[37m"
 
 j = 0
 how_many_anime_in_one_request = 50 #max 50
+total_updated = 0
+total_added = 0
 
+id_or_name = input(f"Do you want to use, {GREEN}user id{RESET} or {GREEN}name?{RESET} (exit for exit :o)\n 1: id \n 2: name \n {CYAN}choice: {RESET}")
+if id_or_name == "exit":
+    print(f"{GREEN}bye bye :<{RESET}")
+    exit()
+elif id_or_name == "1":
+    user_id = input(f"{BLUE}Your id: {RESET}")
+    
+    if user_id == "":
+        # plese put your user id
+        print(f"{RED}You need to put your user id!{RESET}")
+        exit()
+    else:
+        print(f"{BLUE}your user id is: {user_id}{RESET}")
+elif id_or_name == "2":
+    user_name = input(f"{BLUE}Your name: {RESET}")
+    if user_name == "":
+        # plese put your name
+        print(f"{RED}You need to put your user name!{RESET}")
+        exit()
+    else:
+        print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
 
+#need to fetch id from anilist API for user name
+if id_or_name == "2":
+    variables_in_api = {
+        'name' : user_name
+    }
 
+    api_request  = '''
+        query ($name: String) {
+            User(name: $name) {
+                id
+                name
+                }
+            }
+        '''
+    url = 'https://graphql.anilist.co'
+        # sending api request
+    response_frop_anilist = requests.post(url, json={'query': api_request, 'variables': variables_in_api})
+        # take api response to python dictionary to parse json
+    parsed_json = json.loads(response_frop_anilist.text)
+    user_id = parsed_json["data"]["User"]["id"]
+    print(f"{BLUE}your user id is: {GREEN}{user_id}{RESET}")
 
 def how_many_rows(query):
     """Add a pair of question and answer to the general table in the database"""
@@ -74,11 +117,12 @@ try: # open connection to database
     
     variables_in_api = {
     'page' : 1,
-    'perPage' : how_many_anime_in_one_request
+    'perPage' : how_many_anime_in_one_request,
+    'userId' : user_id
     }
 
     api_request  = '''
-        query ($page: Int, $perPage: Int) {
+        query ($page: Int, $perPage: Int, $userId: Int) {
 Page(page: $page, perPage: $perPage) {
     pageInfo {
     perPage
@@ -86,7 +130,7 @@ Page(page: $page, perPage: $perPage) {
     lastPage
     hasNextPage
     }
-    mediaList(userId: 444059, type: ANIME, sort: UPDATED_TIME_DESC) {
+    mediaList(userId: $userId, type: ANIME, sort: UPDATED_TIME_DESC) {
     status
     mediaId
     score
@@ -134,8 +178,7 @@ Page(page: $page, perPage: $perPage) {
         # take api response to python dictionary to parse json
     parsed_json = json.loads(response_frop_anilist.text)
 
-    total_updated = 0
-    total_added = 0
+    
     # this loop is defined by how many perPage is on one request (50 by default and max)
 
     for j in range(len(parsed_json["data"]["Page"]["mediaList"])):   # it needs to add one anime at 1 loop go
@@ -220,10 +263,7 @@ Page(page: $page, perPage: $perPage) {
         record = check_record(mediaId_parsed)
 
         if record:
-                # Record exists
-            #print(f"rekord 18 : {record[18]} for anime {romaji_parsed}")
-                # Record exists
-            print(f"{WHITE}record : {record}{RESET}")
+           
             if record[18] is not None:
                     db_timestamp = int(time.mktime(record[18].timetuple()))
             else:
@@ -234,14 +274,7 @@ Page(page: $page, perPage: $perPage) {
             else:
                 updatedAt_timestamp = None
 
-                #for testing
-            # print(f"updatedAt_parsed: {updatedAt_parsed}")
-            # print("db_timestamp: " + str(db_timestamp))
-            # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
-            # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}") 
-            #  
             if db_timestamp != updatedAt_timestamp:
-                
             
                 update_querry = """ UPDATE `anime_list` SET  
                     id_anilist = {0},
@@ -283,10 +316,8 @@ Page(page: $page, perPage: $perPage) {
 
             else: # INSTEAD OF BREAKING, JUST SKIP TO NEXT ANIME BECAUSE NEXT ONE COULD BE NEW, NEED TO CHECK MORE ANIME
                 print(f"{RED}No new updates for {RESET}{CYAN}{cleaned_romaji}{RESET}{RED}, going to next...{RESET}")
-                
-                    
+                     
         else:
-            
             print(f"{CYAN}This anime is not in a table: {cleaned_romaji}{RESET}")
                 # building querry to insert to table
             insert_querry = """INSERT INTO `anime_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `air_status`, `media_format`, `season_year`,
@@ -308,7 +339,6 @@ Page(page: $page, perPage: $perPage) {
     print(f"{YELLOW}Total added: {total_added}{RESET}")
     print(f"{MAGENTA}Total updated: {total_updated}{RESET}")
     conn.commit()
-        
         
 
 except mysql.connector.Error as e: #if cannot connect to database
