@@ -1,4 +1,3 @@
-import pymysql
 import api_keys
 import mysql.connector
 host_name = api_keys.host_name
