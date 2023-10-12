@@ -21,6 +21,8 @@ WHITE = "\033[37m"
 i = 1
 j = 0
 how_many_anime_in_one_request = 50 #max 50
+total_updated = 0
+total_added = 0
 
 id_or_name = input(f"Do you want to use, {GREEN}user id{RESET} or {GREEN}name?{RESET} (exit for exit :o)\n 1: id \n 2: name \n {CYAN}choice: {RESET}")
 if id_or_name == "exit":
@@ -105,6 +107,44 @@ try: # open connection to database
     connection = conn
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
+
+    # check if table exists of not, create.
+    check_if_table_exists = "SHOW TABLES LIKE 'manga_list'"
+    cursor.execute(check_if_table_exists)
+    result = cursor.fetchone()
+    if result:
+        print(f"{GREEN}Table exists{RESET}")
+    else:
+        print(f"{RED}Table does not exist{RESET}")
+        print(f"{RED}Creating table{RESET}")
+        create_table_query = """CREATE TABLE `manga_list` (
+        `id_default` int(5) NOT NULL AUTO_INCREMENT,
+        `id_anilist` int(11) NOT NULL,
+        `id_mal` int(11) DEFAULT NULL,
+        `title_english` varchar(255) DEFAULT NULL,
+        `title_romaji` varchar(255) DEFAULT NULL,
+        `on_list_status` varchar(255) DEFAULT NULL,
+        `status` varchar(255) DEFAULT NULL,
+        `media_format` varchar(255) DEFAULT NULL,
+        `all_chapters` int(11) DEFAULT NULL,
+        `chapters_progress` int(11) DEFAULT NULL,
+        `score` float DEFAULT NULL,
+        `reread_times` int(11) DEFAULT NULL,
+        `cover_image` varchar(255) DEFAULT NULL,
+        `is_favourite` varchar(10) DEFAULT '0',
+        `anilist_url` varchar(255) DEFAULT NULL,
+        `mal_url` varchar(255) DEFAULT NULL,
+        `last_updated_on_site` timestamp NULL DEFAULT NULL,
+        `entry_createdAt` timestamp NULL DEFAULT NULL,
+        `user_stardetAt` text DEFAULT 'not started',
+        `user_completedAt` text DEFAULT 'not completed',
+        `notes` text DEFAULT NULL,
+        `description` text DEFAULT NULL,
+        PRIMARY KEY (`id_default`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        """
+        cursor.execute(create_table_query)
+        print(f"{GREEN}Table created successfully in MySQL{RESET}")
         # need to take all records from database to compare entries
     take_all_records = "select id_anilist, last_updated_on_site from manga_list"
     all_records = how_many_rows(take_all_records)
@@ -181,8 +221,7 @@ try: # open connection to database
 
             has_next_page = parsed_json["data"]["Page"]["pageInfo"]["hasNextPage"]
         # this variable is for adding new record, it needs to be the same as amount of all records in database to fullfill condition to add record 
-            total_updated = 0
-            total_added = 0
+            
             # this loop is defined by how many perPage is on one request (50 by default and max)
             for j in range(len(parsed_json["data"]["Page"]["mediaList"])):   # it needs to add one anime at 1 loop go
 
