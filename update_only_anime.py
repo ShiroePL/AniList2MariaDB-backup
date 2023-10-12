@@ -43,7 +43,11 @@ elif id_or_name == "2":
         exit()
     else:
         print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
-
+elif id_or_name == "":
+    # plese choose something
+    print(f"{RED}You need to choose something!{RESET}")
+    exit()
+    
 #need to fetch id from anilist API for user name
 if id_or_name == "2":
     variables_in_api = {

@@ -19,9 +19,55 @@ WHITE = "\033[37m"
 
 j = 0
 how_many_anime_in_one_request = 50 #max 50
+total_updated = 0
+total_added = 0
 
+id_or_name = input(f"Do you want to use, {GREEN}user id{RESET} or {GREEN}name?{RESET} (exit for exit :o)\n 1: id \n 2: name \n {CYAN}choice: {RESET}")
+if id_or_name == "exit":
+    print(f"{GREEN}bye bye :<{RESET}")
+    exit()
+elif id_or_name == "1":
+    user_id = input(f"{BLUE}Your id: {RESET}")
+    
+    if user_id == "":
+        # plese put your user id
+        print(f"{RED}You need to put your user id!{RESET}")
+        exit()
+    else:
+        print(f"{BLUE}your user id is: {user_id}{RESET}")
+elif id_or_name == "2":
+    user_name = input(f"{BLUE}Your name: {RESET}")
+    if user_name == "":
+        # plese put your name
+        print(f"{RED}You need to put your user name!{RESET}")
+        exit()
+    else:
+        print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
+elif id_or_name == "":
+    # plese choose something
+    print(f"{RED}You need to choose something!{RESET}")
+    exit()
+#need to fetch id from anilist API for user name
+if id_or_name == "2":
+    variables_in_api = {
+        'name' : user_name
+    }
 
-
+    api_request  = '''
+        query ($name: String) {
+            User(name: $name) {
+                id
+                name
+                }
+            }
+        '''
+    url = 'https://graphql.anilist.co'
+        # sending api request
+    response_frop_anilist = requests.post(url, json={'query': api_request, 'variables': variables_in_api})
+        # take api response to python dictionary to parse json
+    parsed_json = json.loads(response_frop_anilist.text)
+    user_id = parsed_json["data"]["User"]["id"]
+    print(f"{BLUE}your user id is: {GREEN}{user_id}{RESET}")
 
 def how_many_rows(query):
     """Add a pair of question and answer to the general table in the database"""
@@ -56,29 +102,27 @@ def insert_querry_to_db(query):
     cursor.execute(query)
     print("...added ^^ manga to database.")
 
-
-    
+ 
 try: # open connection to database
     connection = conn
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
         # need to take all records from database to compare entries
     take_all_records = "select id_anilist, last_updated_on_site from manga_list"
-    #cursor.execute(take_all_records)
+    
     all_records = how_many_rows(take_all_records)
         # get all records
    
-    
     total_anime = 0
-
-    
+  
     variables_in_api = {
     'page' : 1,
-    'perPage' : how_many_anime_in_one_request
+    'perPage' : how_many_anime_in_one_request,
+    'userId' : user_id
     }
 
     api_request  = '''
-        query ($page: Int, $perPage: Int) {
+        query ($page: Int, $perPage: Int, $userId: Int) {
 Page(page: $page, perPage: $perPage) {
     pageInfo {
     perPage
@@ -86,7 +130,7 @@ Page(page: $page, perPage: $perPage) {
     lastPage
     hasNextPage
     }
-    mediaList(userId: 444059, type: MANGA, sort: UPDATED_TIME_DESC) {
+    mediaList(userId: $userId, type: MANGA, sort: UPDATED_TIME_DESC) {
     status
     mediaId
     score
@@ -132,8 +176,6 @@ Page(page: $page, perPage: $perPage) {
         # take api response to python dictionary to parse json
     parsed_json = json.loads(response_frop_anilist.text)
 
-    total_updated = 0
-    total_added = 0
     # this loop is defined by how many perPage is on one request (50 by default and max)
 
     for j in range(len(parsed_json["data"]["Page"]["mediaList"])):   # it needs to add one anime at 1 loop go
