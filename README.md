@@ -20,15 +20,19 @@ This Python application allows you to back up your anime and manga lists from th
   </tr>
 </table>
 
+
+### Prerequisites
+If you don't have MariaDB installed, you can use [XAMPP] as an easy way to get started with MariaDB. Download and install [XAMPP] from their official website and activate the MariaDB service through the [XAMPP] control panel, then make database. 
+
 ### Instructions
 **Setup**
 1. **Configure API Keys**: Rename the file ```api_keys_template.py``` to ```api_keys.py``` and populate it with your credentials:
     ```python
     # MariaDB Configuration
-    user_name = ""
-    db_password = ""
+    user_name = "" # User name for database
+    db_password = "" # Password to database
     host_name = ""  # IP of MariaDB instance
-    db_name = ""
+    db_name = "" # Name of database
     ```
 
 2. **Install Dependencies**: This has been tested on Python 3.9.0. To install the necessary packages, run:
@@ -53,4 +57,7 @@ To run the program, execute one of the following scripts:
 
 [Anilist] : https://anilist.co/home
 
+[XAMPP] : https://www.apachefriends.org/pl/index.html
+
 [Anilist]: https://anilist.co/home
+[XAMPP]: https://www.apachefriends.org/pl/index.html
