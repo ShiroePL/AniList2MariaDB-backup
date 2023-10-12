@@ -262,9 +262,6 @@ Page(page: $page, perPage: $perPage) {
 
         if record:
                 # Record exists
-            #print(f"rekord 18 : {record[18]} for anime {romaji_parsed}")
-                # Record exists
-            print(f"{WHITE}record : {record}{RESET}")
             if record[16] is not None:
                     db_timestamp = int(time.mktime(record[16].timetuple()))
             else:
@@ -275,16 +272,7 @@ Page(page: $page, perPage: $perPage) {
             else:
                 updatedAt_timestamp = None
 
-                #for testing
-            # print(f"updatedAt_parsed: {updatedAt_parsed}")
-            # print("db_timestamp: " + str(db_timestamp))
-            # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
-            # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}") 
-            #  
-            
-            if db_timestamp != updatedAt_timestamp:
-                
-            
+            if db_timestamp != updatedAt_timestamp:         
                 update_querry = """ UPDATE `manga_list` SET  
                     id_anilist = {0},
                     id_mal = {1},
@@ -314,7 +302,7 @@ Page(page: $page, perPage: $perPage) {
                  chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
                 entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                     # using function from different file, I can't do this different 
-                #print("!!!!!!!!!!!!!!!!!!!!!!!update record: " + update_record)
+                
                 update_querry_to_db(update_record)
                 
                 #updated anime
@@ -329,21 +317,6 @@ Page(page: $page, perPage: $perPage) {
         else:
             
             print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
-                # building querry to insert to table
-            # insert_querry = """INSERT INTO `manga_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
-            #  `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
-            # `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
-            # VALUES
-            # (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            # """
-
-            # insert_record_values = (mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
-            #     chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
-            #     entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description)             
-            #     # using function from different file, I can't do this different
-            # cursor.execute(insert_querry, insert_record_values)
-
-########################################################################
             add_querry = """ INSERT INTO `manga_list` SET  
                     id_anilist = {0},
                     id_mal = {1},
@@ -372,25 +345,15 @@ Page(page: $page, perPage: $perPage) {
                 chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed,
             entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
                 # using function from different file, I can't do this different 
-            #print("!!!!!!!!!!!!!!!!!!!!!!!update record: " + update_record)
             insert_querry_to_db(add_record)
 
-
-
-#########################################################################################
-
-
-
-            #print("...added ^^ manga to database.")
+            print("...added ^^ manga to database.")
             total_added+= 1 
              
-
     print(f"{YELLOW}Total added: {total_added}{RESET}")
     print(f"{MAGENTA}Total updated: {total_updated}{RESET}")
     conn.commit()
         
-        
-
 except mysql.connector.Error as e: #if cannot connect to database
     print("Error reading data from MySQL table", e)
 finally: # close connection after completing program
