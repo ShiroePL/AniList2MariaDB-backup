@@ -403,6 +403,7 @@ try: # open connection to database
                 entry_createdAt_parsed = entry_createdAt_datetime.strftime('%Y-%m-%d %H:%M:%S')
                 #print("cleanded_user_startedAt : ", cleanded_user_startedAt)
                 #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
+                
                 # rekor[18] is last_updated_on_site
                 if record:
                     if record[18] is not None:
