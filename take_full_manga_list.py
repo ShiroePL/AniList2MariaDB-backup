@@ -471,8 +471,8 @@ try: # open connection to database
                         update_record = (
                             mediaId_parsed, idMal_parsed, cleaned_english, cleaned_romaji, on_list_status_parsed, status_parsed, format_parsed, 
                             chapters_parsed, volumes_parsed, progress_parsed, volumes_progress_parsed, score_parsed, repeat_parsed, large_parsed, 
-                            isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db, 
-                            created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes, cleaned_description, 
+                            isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed, 
+                            entry_createdAt_parsed, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes, cleaned_description, 
                             country_parsed, media_startDate_parsed, media_endDate_parsed, genres_json, external_links_json, mediaId_parsed  # ID again for WHERE clause
                         )
 
