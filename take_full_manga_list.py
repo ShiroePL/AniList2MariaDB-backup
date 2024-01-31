@@ -101,12 +101,15 @@ def update_querry_to_db(insert_query, insert_record):
     cursor.execute(insert_query, insert_record)
     print(f"{BLUE}updated record ^^ {cleaned_romaji}{RESET}")
 
-def insert_querry_to_db(insert_query, insert_record):
+def insert_querry_to_db(insert_query, insert_record, what_type_updated):
     """Insert a record into the manga_list table in the database"""
     global conn   
     cursor = conn.cursor()
     cursor.execute(insert_query, insert_record)
-    print(f"{MAGENTA}...added ^^ manga to database.{RESET}")
+    if what_type_updated == "MANGA":
+        print(f"{MAGENTA}...added ^^ manga to database.{RESET}")
+    elif what_type_updated == "NOVEL":
+        print(f"{MAGENTA}...added ^^ novel to database.{RESET}")
     
 try: # open connection to database
     connection = conn
@@ -267,8 +270,6 @@ try: # open connection to database
                 user_startedAt = parsed_json["data"]["Page"]["mediaList"][j]["startedAt"]
                     # user completedAt
                 user_completedAt = parsed_json["data"]["Page"]["mediaList"][j]["completedAt"]
-
-
                     # media startedAt
                 media_startDate = parsed_json["data"]["Page"]["mediaList"][j]["media"]["startDate"]
                     # media completedAt
@@ -287,7 +288,6 @@ try: # open connection to database
                 idMal_parsed = idMal["idMal"]
                 format_parsed = formatt["format"]
                 status_parsed = status["status"]
-                
                 
                 updatedAt_parsed = updatedAt["updatedAt"]
                 
@@ -340,7 +340,6 @@ try: # open connection to database
                 # Convert genres list to JSON string
                 genres_json = json.dumps(genres_parsed)
 
-
                     # cleaning strings and formating
                 cleaned_english = str(english_parsed).replace("'" , '"')
                 cleaned_romaji = str(romaji_parsed).replace("'" , '"')
@@ -369,10 +368,7 @@ try: # open connection to database
                 #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
                 updated_at_for_loop = updatedAt["updatedAt"]
 
-                #cheat sheet numbers of columns from database
-                #(0 id_anilist, 1 id_mal, 2 title_english, 3 title_romaji, 4 on_list_status, 5 status,6 media_format,7 season_year,8 season_period,9 all_episodes,10 episodes_progress,
-                #11 score,12 rewatched_times, 13 cover_image, 14 is_favourite, 15 anilist_url, 16 mal_url, 17 last_updated_on_site, 18 entry_createdAt, 19 user_stardetAt, 20 user_completedAt,
-                #21 notes, 22 description)
+                
     
                 
                 tqdm.write(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
@@ -414,7 +410,7 @@ try: # open connection to database
                 # rekor[18] is last_updated_on_site
                 if record:
                     if record[18] is not None:
-                        # Check if record[16] is a string and convert it to datetime object
+                        # Check if record[18] is a string and convert it to datetime object
                         if isinstance(record[18], str):
                             try:
                                 db_datetime = datetime.strptime(record[18], '%Y-%m-%d %H:%M:%S')
@@ -424,7 +420,7 @@ try: # open connection to database
                                 print("Date format is incorrect")
                                 db_timestamp = None
                         else:
-                            # If record[16] is already a datetime object
+                            # If record[18] is already a datetime object
                             db_timestamp = int(time.mktime(record[18].timetuple()))
                     else:
                         db_timestamp = None
@@ -491,8 +487,12 @@ try: # open connection to database
                         
 
                 else:
-                    print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
-                    print(f'{MAGENTA}{genres_parsed}{RESET}')
+                    if format_parsed == "NOVEL":
+                        print(f"{RED}This novel is not in a table: {cleaned_romaji}{RESET}")
+                    elif format_parsed == "MANGA":
+                        print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
+
+                    
                         # building querry to insert to table
                     insert_query = """
                     INSERT INTO `manga_list2` (
@@ -518,14 +518,12 @@ try: # open connection to database
                     
                     
                         # using function from different file, I can't do this different
-                    #print("insert_record: "+insert_record)
-                    print("insert record: ", insert_record)
-                    insert_querry_to_db(insert_query, insert_record)
-                    print("inserted??")
+                    #print("insert record: ", insert_record) #uncomment to see what is going to be inserted
+                    insert_querry_to_db(insert_query, insert_record, format_parsed)
                     total_added+= 1    
                     
             print(f"{YELLOW}Total added: {total_added}{RESET}")
-            print(f"{YELLOW}Total updated: {total_updated}{RESET}")
+            print(f"{MAGENTA}Total updated: {total_updated}{RESET}")
             
             conn.commit()
             progress_bar.update(1)

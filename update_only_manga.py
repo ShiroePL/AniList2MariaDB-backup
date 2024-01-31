@@ -97,12 +97,15 @@ def update_querry_to_db(insert_query, insert_record):
     cursor.execute(insert_query, insert_record)
     print(f"{MAGENTA}updated record ^^ {CYAN}{cleaned_romaji}{RESET}")
 
-def insert_querry_to_db(insert_query, insert_record):
+def insert_querry_to_db(insert_query, insert_record, what_type_updated):
     """Insert a record into the manga_list table in the database"""
     global conn   
     cursor = conn.cursor()
     cursor.execute(insert_query, insert_record)
-    print("...added ^^ manga to database.")
+    if what_type_updated == "MANGA":
+        print(f"{MAGENTA}...added ^^ manga to database.{RESET}")
+    elif what_type_updated == "NOVEL":
+        print(f"{MAGENTA}...added ^^ novel to database.{RESET}")
 
  
 try: # open connection to database
@@ -262,7 +265,7 @@ Page(page: $page, perPage: $perPage) {
         user_completedAt_month = user_completedAt["month"]
         user_completedAt_day = user_completedAt["day"]
 
-        # media start date
+            # media start date
         media_startDate_year = media_startDate["year"]
         media_startDate_month = media_startDate["month"]
         media_startDate_day = media_startDate["day"]
@@ -318,10 +321,7 @@ Page(page: $page, perPage: $perPage) {
         #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
         updated_at_for_loop = updatedAt["updatedAt"]
 
-        #cheat sheet numbers of columns from database
-        #(0 id_anilist, 1 id_mal, 2 title_english, 3 title_romaji, 4 on_list_status, 5 status,6 media_format,7 season_year,8 season_period,9 all_episodes,10 episodes_progress,
-        #11 score,12 rewatched_times, 13 cover_image, 14 is_favourite, 15 anilist_url, 16 mal_url, 17 last_updated_on_site, 18 entry_createdAt, 19 user_stardetAt, 20 user_completedAt,
-        #21 notes, 22 description)
+        
 
         
         
@@ -436,7 +436,10 @@ Page(page: $page, perPage: $perPage) {
                     
         else:
             
-            print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
+            if format_parsed == "NOVEL":
+                print(f"{RED}This novel is not in a table: {cleaned_romaji}{RESET}")
+            elif format_parsed == "MANGA":
+                print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
             add_querry = """
                     INSERT INTO `manga_list2` (
                         `id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
@@ -456,7 +459,7 @@ Page(page: $page, perPage: $perPage) {
                 country_parsed, media_startDate_parsed, media_endDate_parsed, genres_json, external_links_json
             )
                 # using function from different file, I can't do this different 
-            insert_querry_to_db(add_querry, insert_record)
+            insert_querry_to_db(add_querry, insert_record, format_parsed)
 
             
             total_added+= 1 
