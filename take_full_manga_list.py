@@ -30,18 +30,25 @@ elif id_or_name == "1":
     user_id = input(f"{BLUE}Your id: {RESET}")
     
     if user_id == "":
-        user_id = 444059
-        print(f"{BLUE}Hello Madrus{RESET}")
+        # user_id = ...        <-------------- put your user id here if you want to skip input, an uncomment these line
+        # print(f"{BLUE}Hello ...{RESET}")
+        print(f"{RED}You need to put your user id!{RESET}") # if you want to skip input, comment this line
+        exit() # if you want to skip input, comment this line
     else:
         print(f"{BLUE}your user id is: {user_id}{RESET}")
 elif id_or_name == "2":
     user_name = input(f"{BLUE}Your name: {RESET}")
     if user_name == "":
-        user_name = "Madrus"
-        print(f"{BLUE}Hello Madrus{RESET}")
+        # user_name = "..." # <-------------- put your user name here if you want to skip input, an uncomment these line
+        # print(f"{BLUE}Hello ...{RESET}") # if you want to skip input, comment this line
+        print(f"{RED}You need to put your user name!{RESET}") # if you want to skip input, comment this line
+        exit() # if you want to skip input, comment this line
     else:
         print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
-
+elif id_or_name == "":
+    # plese choose something
+    print(f"{RED}You need to choose something!{RESET}")
+    exit()
 #need to fetch id from anilist API for user name
 if id_or_name == "2":
     variables_in_api = {
@@ -135,7 +142,7 @@ try: # open connection to database
         `mal_url` varchar(255) DEFAULT NULL,
         `last_updated_on_site` timestamp NULL DEFAULT NULL,
         `entry_createdAt` timestamp NULL DEFAULT NULL,
-        `user_stardetAt` text DEFAULT 'not started',
+        `user_startedAt` text DEFAULT 'not started',
         `user_completedAt` text DEFAULT 'not completed',
         `notes` text DEFAULT NULL,
         `description` text DEFAULT NULL,

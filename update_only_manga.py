@@ -1,9 +1,7 @@
 import json
-from turtle import st
 import time
 import requests
 import mysql.connector
-import api_keys
 from db_config import conn
 from tqdm import tqdm
 from datetime import datetime
@@ -31,17 +29,19 @@ elif id_or_name == "1":
     user_id = input(f"{BLUE}Your id: {RESET}")
     
     if user_id == "":
-        # plese put your user id
-        print(f"{RED}You need to put your user id!{RESET}")
-        exit()
+        # user_id = ...        <-------------- put your user id here if you want to skip input, an uncomment these line
+        # print(f"{BLUE}Hello ...{RESET}")
+        print(f"{RED}You need to put your user id!{RESET}") # if you want to skip input, comment this line
+        exit() # if you want to skip input, comment this line
     else:
         print(f"{BLUE}your user id is: {user_id}{RESET}")
 elif id_or_name == "2":
     user_name = input(f"{BLUE}Your name: {RESET}")
     if user_name == "":
-        # plese put your name
-        print(f"{RED}You need to put your user name!{RESET}")
-        exit()
+        # user_name = "..." # <-------------- put your user name here if you want to skip input, an uncomment these line
+        # print(f"{BLUE}Hello ...{RESET}") # if you want to skip input, comment this line
+        print(f"{RED}You need to put your user name!{RESET}") # if you want to skip input, comment this line
+        exit() # if you want to skip input, comment this line
     else:
         print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
 elif id_or_name == "":
@@ -110,6 +110,16 @@ try: # open connection to database
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
         # need to take all records from database to compare entries
+    # cheking if table even exists
+    check_if_table_exists = "SHOW TABLES LIKE 'manga_list2'"
+    cursor.execute(check_if_table_exists)
+    result = cursor.fetchone()
+    if result:
+        print(f"{GREEN}Table exists, next step...{RESET}")
+    else:
+        print(f"{RED}Table does not exist{RESET}")
+        print(f"{RED}If there is no table, you need to first run 'take_full_manga_list.py'. This update program takes only most recent 50 entries. If you have updated more or didn't created table yet, please run the full list program.{RESET}")
+
     take_all_records = "select id_anilist, last_updated_on_site from manga_list2"
     
     all_records = how_many_rows(take_all_records)
