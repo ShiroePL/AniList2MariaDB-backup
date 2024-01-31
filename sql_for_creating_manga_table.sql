@@ -23,5 +23,11 @@ CREATE TABLE `manga_list2` (
   `user_completedAt` text DEFAULT 'not completed',
   `notes` text DEFAULT NULL,
   `description` text DEFAULT NULL,
+  `country_of_origin` varchar(255) DEFAULT NULL,
+  `media_start_date` text DEFAULT 'media not started',
+  `media_end_date` text DEFAULT 'media not ended',
+  `genres` text DEFAULT 'none genres provided',
+  `external_links` text DEFAULT 'none links associated',
   PRIMARY KEY (`id_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=1304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1483 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
