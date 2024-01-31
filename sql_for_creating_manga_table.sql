@@ -31,3 +31,4 @@ CREATE TABLE `manga_list2` (
   PRIMARY KEY (`id_default`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
+SELECT * FROM manga_list2 WHERE id_anilist = 124783
