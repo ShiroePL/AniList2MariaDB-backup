@@ -19,7 +19,7 @@ CREATE TABLE `manga_list2` (
   `mal_url` varchar(255) DEFAULT NULL,
   `last_updated_on_site` timestamp NULL DEFAULT NULL,
   `entry_createdAt` timestamp NULL DEFAULT NULL,
-  `user_stardetAt` text DEFAULT 'not started',
+  `user_startedAt` text DEFAULT 'not started',
   `user_completedAt` text DEFAULT 'not completed',
   `notes` text DEFAULT NULL,
   `description` text DEFAULT NULL,
@@ -29,5 +29,5 @@ CREATE TABLE `manga_list2` (
   `genres` text DEFAULT 'none genres provided',
   `external_links` text DEFAULT 'none links associated',
   PRIMARY KEY (`id_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=1483 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
