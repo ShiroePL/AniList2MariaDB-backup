@@ -1,11 +1,9 @@
 import json
-from turtle import st
 import time
 import requests
 import mysql.connector
 from db_config import conn
 from tqdm import tqdm
-import timeit
 from datetime import datetime
 
 # ANSI escape sequences for colors
@@ -32,24 +30,18 @@ elif id_or_name == "1":
     user_id = input(f"{BLUE}Your id: {RESET}")
     
     if user_id == "":
-        # plese put your user id
-        print(f"{RED}You need to put your user id!{RESET}")
-        exit()
+        user_id = 444059
+        print(f"{BLUE}Hello Madrus{RESET}")
     else:
         print(f"{BLUE}your user id is: {user_id}{RESET}")
 elif id_or_name == "2":
     user_name = input(f"{BLUE}Your name: {RESET}")
     if user_name == "":
-        # plese put your name
-        print(f"{RED}You need to put your user name!{RESET}")
-        exit()
+        user_name = "Madrus"
+        print(f"{BLUE}Hello Madrus{RESET}")
     else:
         print(f"{BLUE}your user name is: {GREEN}{user_name}{RESET}")
-elif id_or_name == "":
-    # plese choose something
-    print(f"{RED}You need to choose something!{RESET}")
-    exit()
-    
+
 #need to fetch id from anilist API for user name
 if id_or_name == "2":
     variables_in_api = {
@@ -89,7 +81,7 @@ def how_many_rows(query):
 def check_record(media_id):
     """Check if a record with the given media_id exists in the manga_list table in the database"""
     global conn
-    check_record_query = "SELECT * FROM manga_list WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM manga_list2 WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
@@ -113,46 +105,9 @@ try: # open connection to database
     connection = conn
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
-
-    # check if table exists of not, create.
-    check_if_table_exists = "SHOW TABLES LIKE 'manga_list'"
-    cursor.execute(check_if_table_exists)
-    result = cursor.fetchone()
-    if result:
-        print(f"{GREEN}Table exists{RESET}")
-    else:
-        print(f"{RED}Table does not exist{RESET}")
-        print(f"{RED}Creating table{RESET}")
-        create_table_query = """CREATE TABLE `manga_list` (
-        `id_default` int(5) NOT NULL AUTO_INCREMENT,
-        `id_anilist` int(11) NOT NULL,
-        `id_mal` int(11) DEFAULT NULL,
-        `title_english` varchar(255) DEFAULT NULL,
-        `title_romaji` varchar(255) DEFAULT NULL,
-        `on_list_status` varchar(255) DEFAULT NULL,
-        `status` varchar(255) DEFAULT NULL,
-        `media_format` varchar(255) DEFAULT NULL,
-        `all_chapters` int(11) DEFAULT NULL,
-        `chapters_progress` int(11) DEFAULT NULL,
-        `score` float DEFAULT NULL,
-        `reread_times` int(11) DEFAULT NULL,
-        `cover_image` varchar(255) DEFAULT NULL,
-        `is_favourite` varchar(10) DEFAULT '0',
-        `anilist_url` varchar(255) DEFAULT NULL,
-        `mal_url` varchar(255) DEFAULT NULL,
-        `last_updated_on_site` timestamp NULL DEFAULT NULL,
-        `entry_createdAt` timestamp NULL DEFAULT NULL,
-        `user_stardetAt` text DEFAULT 'not started',
-        `user_completedAt` text DEFAULT 'not completed',
-        `notes` text DEFAULT NULL,
-        `description` text DEFAULT NULL,
-        PRIMARY KEY (`id_default`)
-        ) ENGINE=InnoDB AUTO_INCREMENT=1304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-        """
-        cursor.execute(create_table_query)
-        print(f"{GREEN}Table created successfully in MySQL{RESET}")
         # need to take all records from database to compare entries
-    take_all_records = "select id_anilist, last_updated_on_site from manga_list"
+    take_all_records = "select id_anilist, last_updated_on_site from manga_list2"
+    #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
     
@@ -183,6 +138,7 @@ try: # open connection to database
             mediaId
             score
             progress
+            progressVolumes
             repeat
             updatedAt
             createdAt
@@ -206,11 +162,27 @@ try: # open connection to database
                 status
                 description
                 chapters
+                volumes
                 coverImage {
                 large
                 }
                 isFavourite
                 siteUrl
+                countryOfOrigin
+                startDate {
+                year
+                month
+                day
+              }
+              endDate {
+                year
+                month
+                day
+              }
+              genres
+              externalLinks {
+                url
+              }
             }
             notes
                 }
@@ -227,16 +199,17 @@ try: # open connection to database
 
             has_next_page = parsed_json["data"]["Page"]["pageInfo"]["hasNextPage"]
         # this variable is for adding new record, it needs to be the same as amount of all records in database to fullfill condition to add record 
-            
+            # total_updated = 0
+            # total_added = 0
             # this loop is defined by how many perPage is on one request (50 by default and max)
             for j in range(len(parsed_json["data"]["Page"]["mediaList"])):   # it needs to add one anime at 1 loop go
 
-                on_list_status = mediaId = score = progress = repeat = updatedAt = entry_createdAt = notes = parsed_json["data"]["Page"]["mediaList"][j]
+                on_list_status = mediaId = score = progress = volumes_progress = repeat = updatedAt = entry_createdAt = notes = parsed_json["data"]["Page"]["mediaList"][j]
                 
                     # title
                 english = romaji = parsed_json["data"]["Page"]["mediaList"][j]["media"]["title"]
                     # mediaList - media
-                idMal = formatt = status  = chapters = isFavourite = siteUrl = description = parsed_json["data"]["Page"]["mediaList"][j]["media"]
+                idMal = formatt = status  = chapters = volumes = isFavourite = siteUrl = description = country = genres = parsed_json["data"]["Page"]["mediaList"][j]["media"]
                     # coverimage
                 large = parsed_json["data"]["Page"]["mediaList"][j]["media"]["coverImage"]
                     # user startedAt
@@ -245,10 +218,18 @@ try: # open connection to database
                 user_completedAt = parsed_json["data"]["Page"]["mediaList"][j]["completedAt"]
 
 
+                    # media startedAt
+                media_startDate = parsed_json["data"]["Page"]["mediaList"][j]["media"]["startDate"]
+                    # media completedAt
+                media_endDate = parsed_json["data"]["Page"]["mediaList"][j]["media"]["endDate"]
+                    # media external links
+                media_externalLinks = parsed_json["data"]["Page"]["mediaList"][j]["media"]["externalLinks"]
+
                 on_list_status_parsed = on_list_status["status"]
                 mediaId_parsed = mediaId["mediaId"]
                 score_parsed = score["score"]
                 progress_parsed = progress["progress"]
+                volumes_progress_parsed = volumes_progress["progressVolumes"]
                 repeat_parsed = repeat["repeat"]
                 english_parsed = english["english"]
                 romaji_parsed = romaji["romaji"]
@@ -259,12 +240,14 @@ try: # open connection to database
                 updatedAt_parsed = updatedAt["updatedAt"]
                 
                 chapters_parsed = chapters["chapters"]
+                volumes_parsed = volumes["volumes"]
                 large_parsed = large["large"]
                 isFavourite_parsed = isFavourite["isFavourite"]
                 siteUrl_parsed = siteUrl["siteUrl"]
                 notes_parsed = notes["notes"]
                 description_parsed = description["description"]
                 entry_createdAt_parsed = entry_createdAt["createdAt"]
+                country_parsed = country["countryOfOrigin"]
 
                     # started at 
                 user_startedAt_year = user_startedAt["year"]
@@ -276,6 +259,27 @@ try: # open connection to database
                 user_completedAt_month = user_completedAt["month"]
                 user_completedAt_day = user_completedAt["day"]
 
+                    # media start date
+                media_startDate_year = media_startDate["year"]
+                media_startDate_month = media_startDate["month"]
+                media_startDate_day = media_startDate["day"]
+                
+                    # media end date
+                media_endDate_year = media_endDate["year"]
+                media_endDate_month = media_endDate["month"]
+                media_endDate_day = media_endDate["day"]
+
+
+                # Initialize an empty list to store the parsed URLs
+                media_externalLinks_parsed = []
+
+                # Iterate through each item in the media_externalLinks list
+                for link in media_externalLinks:
+                    # Extract the URL and append it to the media_externalLinks_parsed list
+                    url = link["url"]
+                    media_externalLinks_parsed.append(url)
+
+
                     # cleaning strings and formating
                 cleaned_english = str(english_parsed).replace("'" , '"')
                 cleaned_romaji = str(romaji_parsed).replace("'" , '"')
@@ -286,15 +290,22 @@ try: # open connection to database
                 cleaned_description = str(cleaned_description).replace("'" , '"')       
                 mal_url_parsed = "https://myanimelist.net/manga/" + str(idMal_parsed)
 
+    
                     # reformating user started and completed to date format from sql
                 user_startedAt_parsed = str(user_startedAt_year) + "-" + str(user_startedAt_month) + "-" + str(user_startedAt_day)
                 user_completedAt_parsed = str(user_completedAt_year) + "-" + str(user_completedAt_month) + "-" + str(user_completedAt_day)
 
+                    # reformating MEDIA start date and completed to date format from sql
+                media_startDate_parsed = str(media_startDate_year) + "-" + str(media_startDate_month) + "-" + str(media_startDate_day)
+                media_endDate_parsed = str(media_endDate_year) + "-" + str(media_endDate_month) + "-" + str(media_endDate_day)
+
                     # if null make null to add to databese user started and completed
                 cleanded_user_startedAt = user_startedAt_parsed.replace('None-None-None' , 'not started')
                 cleanded_user_completedAt = user_completedAt_parsed.replace('None-None-None' , 'not completed')
-                chapters_parsed = 'NULL' if chapters_parsed is None else chapters_parsed
+                chapters_parsed = '0' if chapters_parsed is None else chapters_parsed
+                volumes_parsed = '0' if volumes_parsed is None else volumes_parsed
 
+                #print(f"{RED}entry_createdAt_parsed : {cleanded_user_completedAt}{RESET}")
                 updated_at_for_loop = updatedAt["updatedAt"]
 
                 #cheat sheet numbers of columns from database
@@ -305,6 +316,7 @@ try: # open connection to database
                 
                 tqdm.write(f"{GREEN}Checking for mediaId: {mediaId_parsed}{RESET}")
                 record = check_record(mediaId_parsed)
+                #print(f"{RED}record : {record}{RESET}")
                 
                 if entry_createdAt_parsed == 'NULL':
                     created_at_for_db = 'NULL'
@@ -320,15 +332,20 @@ try: # open connection to database
                 else:
                     updatedAt_parsed_for_db = f"FROM_UNIXTIME({updatedAt_parsed})"
 
+                #print("idMal_parsed : ", idMal_parsed)
                 if idMal_parsed is None:
                     idMal_parsed = 0
+                #print("changed idMal_parsed : ", idMal_parsed)
                 # Convert the Unix timestamp to a Python datetime object
                 updatedAt_datetime = datetime.fromtimestamp(updatedAt_parsed)
 
                 # Convert the datetime object to a string in the correct format
                 updatedAt_parsed = updatedAt_datetime.strftime('%Y-%m-%d %H:%M:%S')
+                #print("cleanded_user_startedAt : ", cleanded_user_startedAt)
+                #print("cleanded_user_completedAt : ", cleanded_user_completedAt)
 
                 if record:
+                    #print(f"rekors 16 : {record[16]} for anime {romaji_parsed}")
                     # # Record exists
                     print(f"{RED}record : {record}{RESET}")
                     if record[16] is not None: #
@@ -340,9 +357,16 @@ try: # open connection to database
                         updatedAt_timestamp = int(time.mktime(time.strptime(updatedAt_parsed, '%Y-%m-%d %H:%M:%S')))
                     else:
                         updatedAt_timestamp = None
-            
+
+                    # print(f"updatedAt_parsed: {updatedAt_parsed}")
+                    # print("db_timestamp: " + str(db_timestamp))
+                    # print("updatedAt_timestamp: " + str(updatedAt_timestamp))
+                    # print(f"rekors 18 : {record[18]} for anime {romaji_parsed}")
+                    #       
                     if db_timestamp != updatedAt_timestamp:
-                        update_querry = """ UPDATE `manga_list` SET  
+                        
+                    #if record[18] != updatedAt_parsed:
+                        update_querry = """ UPDATE `manga_list2` SET  
                             id_anilist = {0},
                             id_mal = {1},
                             title_english = '{2}',
@@ -351,48 +375,57 @@ try: # open connection to database
                             status = '{5}',
                             media_format = '{6}',
                             all_chapters = {7},
-                            chapters_progress = {8},
-                            score = {9},
-                            reread_times = {10},
-                            cover_image = '{11}',
-                            is_favourite = '{12}',
-                            anilist_url = '{13}',
-                            mal_url = '{14}',
-                            last_updated_on_site = {15},
-                            entry_createdAt = {16},
-                            user_stardetAt = '{17}',
-                            user_completedAt = '{18}',
-                            notes = '{19}',
-                            description = '{20}'
+                            all_volumes = {8},
+                            chapters_progress = {9},
+                            volumes_progress = {10},
+                            score = {11},
+                            reread_times = {12},
+                            cover_image = '{13}',
+                            is_favourite = {14},
+                            anilist_url = '{15}',
+                            mal_url = '{16}',
+                            last_updated_on_site = {17},
+                            entry_createdAt = {18},
+                            user_stardetAt = '{19}',
+                            user_completedAt = '{20}',
+                            notes = '{21}',
+                            description = '{22}',
+                            country_of_origin = '{23}',
+                            media_start_date = '{24}',
+                            media_end_date = '{25}',
+                            genres = '{26}',
+                            external_links = '{27}'
                             WHERE id_anilist = {0};
                             """
                                 # inserting variables to ^^ {x} 
                         update_record = (update_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
-                        chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
-                        created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))
+                        chapters_parsed, volumes_parsed , progress_parsed,volumes_progress ,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                        created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description, country_parsed, media_startDate_parsed, media_endDate_parsed, genres, media_externalLinks_parsed))
                             # using function from different file, I can't do this different 
                         #print("update_record : ", update_record)
                         update_querry_to_db(update_record)
 
                         total_updated += 1
                         
+
                 else:
                     print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
                         # building querry to insert to table
-                    insert_querry = """INSERT INTO `manga_list`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
-                     `all_chapters`, `chapters_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
-                    `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`) 
+                    insert_querry = """INSERT INTO `manga_list2`(`id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
+                     `all_chapters`, `all_volumes`, `chapters_progress`, `volumes_progress`, `score`,`reread_times`, `cover_image`, `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`,
+                    `entry_createdAt`, `user_stardetAt`, `user_completedAt`, `notes`, `description`, `country_of_origin`, `media_start_date`, `media_end_date`, `genres`, `external_links`) 
                     VALUES
-                    ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', {7}, {8}, {9}, {10}, '{11}', '{12}', '{13}', '{14}', {15}, {16}, '{17}', '{18}', '{19}', '{20}');
+                    ({0}, {1}, '{2}', '{3}', '{4}', '{5}', '{6}', {7}, {8}, {9}, {10}, {11}, {12}, '{13}', {14}, '{15}', '{16}', {17}, {18}, '{19}', '{20}', '{21}', '{22}', '{23}', '{24}', '{25}', '{26}', '{27}');
                     """
                         # inserting variables to ^^ {x}
                     insert_record = (insert_querry.format(mediaId_parsed, idMal_parsed, cleaned_english ,cleaned_romaji , on_list_status_parsed, status_parsed, format_parsed, 
-                    chapters_parsed, progress_parsed,score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
-                    created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description))     
-
+                    chapters_parsed, volumes_parsed, progress_parsed, volumes_progress, score_parsed , repeat_parsed, large_parsed, isFavourite_parsed, siteUrl_parsed, mal_url_parsed, updatedAt_parsed_for_db,
+                    created_at_for_db, cleanded_user_startedAt, cleanded_user_completedAt, cleaned_notes,cleaned_description, country_parsed, media_startDate_parsed, media_endDate_parsed, genres, media_externalLinks_parsed))             
                         # using function from different file, I can't do this different
+                    #print("insert_record: "+insert_record)
+                    print("insert record: ", insert_record)
                     insert_querry_to_db(insert_record)
-                    
+                    print("inserted??")
                     total_added+= 1    
                     
             print(f"{YELLOW}Total added: {total_added}{RESET}")
@@ -400,6 +433,7 @@ try: # open connection to database
             
             conn.commit()
             progress_bar.update(1)
+            
             i += 1
 
 except mysql.connector.Error as e: #if cannot connect to database
