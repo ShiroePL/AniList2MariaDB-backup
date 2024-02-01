@@ -1,4 +1,4 @@
-CREATE TABLE `manga_list2` (
+CREATE TABLE `manga_list` (
   `id_default` int(5) NOT NULL AUTO_INCREMENT,
   `id_anilist` int(11) NOT NULL,
   `id_mal` int(11) DEFAULT NULL,

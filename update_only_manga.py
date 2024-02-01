@@ -84,7 +84,7 @@ def how_many_rows(query):
 def check_record(media_id):
     """Check if a record with the given media_id exists in the manga_list table in the database"""
     global conn
-    check_record_query = "SELECT * FROM manga_list2 WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM manga_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
@@ -114,7 +114,7 @@ try: # open connection to database
     cursor = connection.cursor()
         # need to take all records from database to compare entries
     # cheking if table even exists
-    check_if_table_exists = "SHOW TABLES LIKE 'manga_list2'"
+    check_if_table_exists = "SHOW TABLES LIKE 'manga_list'"
     cursor.execute(check_if_table_exists)
     result = cursor.fetchone()
     if result:
@@ -123,7 +123,7 @@ try: # open connection to database
         print(f"{RED}Table does not exist{RESET}")
         print(f"{RED}If there is no table, you need to first run 'take_full_manga_list.py'. This update program takes only most recent 50 entries. If you have updated more or didn't created table yet, please run the full list program.{RESET}")
 
-    take_all_records = "select id_anilist, last_updated_on_site from manga_list2"
+    take_all_records = "select id_anilist, last_updated_on_site from manga_list"
     
     all_records = how_many_rows(take_all_records)
         # get all records
@@ -382,7 +382,7 @@ Page(page: $page, perPage: $perPage) {
 
             if db_timestamp != updatedAt_timestamp:         
                 update_query = """
-                UPDATE `manga_list2` SET  
+                UPDATE `manga_list` SET  
                     id_anilist = %s,
                     id_mal = %s,
                     title_english = %s,
@@ -441,7 +441,7 @@ Page(page: $page, perPage: $perPage) {
             elif format_parsed == "MANGA":
                 print(f"{CYAN}This manga is not in a table: {cleaned_romaji}{RESET}")
             add_querry = """
-                    INSERT INTO `manga_list2` (
+                    INSERT INTO `manga_list` (
                         `id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
                         `all_chapters`, `all_volumes`, `chapters_progress`, `volumes_progress`, `score`, `reread_times`, `cover_image`, 
                         `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`, `entry_createdAt`, `user_startedAt`, 

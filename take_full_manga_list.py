@@ -88,7 +88,7 @@ def how_many_rows(query):
 def check_record(media_id):
     """Check if a record with the given media_id exists in the manga_list table in the database"""
     global conn
-    check_record_query = "SELECT * FROM manga_list2 WHERE id_anilist = %s"
+    check_record_query = "SELECT * FROM manga_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
     record = cursor.fetchone()
     return record
@@ -116,7 +116,7 @@ try: # open connection to database
         # class cursor : Allows Python code to execute PostgreSQL command in a database session. Cursors are created by the connection.cursor() method
     cursor = connection.cursor()
 
-    check_if_table_exists = "SHOW TABLES LIKE 'manga_list2'"
+    check_if_table_exists = "SHOW TABLES LIKE 'manga_list'"
     cursor.execute(check_if_table_exists)
     result = cursor.fetchone()
     if result:
@@ -124,7 +124,7 @@ try: # open connection to database
     else:
         print(f"{RED}Table does not exist{RESET}")
         print(f"{RED}Creating table{RESET}")
-        create_table_query = """CREATE TABLE `manga_list2` (
+        create_table_query = """CREATE TABLE `manga_list` (
         `id_default` int(5) NOT NULL AUTO_INCREMENT,
         `id_anilist` int(11) NOT NULL,
         `id_mal` int(11) DEFAULT NULL,
@@ -160,7 +160,7 @@ try: # open connection to database
         cursor.execute(create_table_query)
         print(f"{GREEN}Table created successfully in MySQL{RESET}")
         # need to take all records from database to compare entries
-    take_all_records = "select id_anilist, last_updated_on_site from manga_list2"
+    take_all_records = "select id_anilist, last_updated_on_site from manga_list"
     #cursor.execute(take_all_records)
     all_records = how_many_rows(take_all_records)
         # get all records
@@ -439,7 +439,7 @@ try: # open connection to database
                         
                     #if record[18] != updatedAt_parsed:
                         update_query = """
-                        UPDATE `manga_list2` SET  
+                        UPDATE `manga_list` SET  
                             id_anilist = %s,
                             id_mal = %s,
                             title_english = %s,
@@ -495,7 +495,7 @@ try: # open connection to database
                     
                         # building querry to insert to table
                     insert_query = """
-                    INSERT INTO `manga_list2` (
+                    INSERT INTO `manga_list` (
                         `id_anilist`, `id_mal`, `title_english`, `title_romaji`, `on_list_status`, `status`, `media_format`, 
                         `all_chapters`, `all_volumes`, `chapters_progress`, `volumes_progress`, `score`, `reread_times`, `cover_image`, 
                         `is_favourite`, `anilist_url`, `mal_url`, `last_updated_on_site`, `entry_createdAt`, `user_startedAt`, 
