@@ -85,8 +85,7 @@ def check_record(media_id):
     global conn
     check_record_query = "SELECT * FROM anime_list WHERE id_anilist = %s"
     cursor.execute(check_record_query, (media_id,))
-    record = cursor.fetchone()
-    return record
+    return cursor.fetchone()
 
 def update_querry_to_db(query):
     """Update a record in the anime_list table in the database"""
