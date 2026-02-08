@@ -129,6 +129,20 @@ Choose one of four available operations:
 3. **Multiple lists**: You can backup both anime and manga lists independently
 4. **Monitor logs**: Keep an eye on the log output for any issues or statistics
 
+### Important Notes
+
+**Table Names:**
+- **Full Anime Backup** creates and uses the `anime_list2` table
+- **Update Recent Anime** uses the `anime_list` table
+- **Full Manga Backup** creates and uses the `manga_list` table
+- **Update Recent Manga** uses the `manga_list` table
+
+This behavior matches the original CLI scripts. If you want to use "Update Recent Anime", you need to either:
+1. Run the Full Anime Backup first (which creates `anime_list2`), OR
+2. Manually create the `anime_list` table using the provided SQL file `sql_for_creating_anime_table.sql`
+
+The difference in table names for anime operations is inherited from the original CLI implementation.
+
 ### Command-Line Alternative
 
 If you prefer using the command line, the original scripts are still available:
