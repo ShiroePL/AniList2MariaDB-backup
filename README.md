@@ -2,6 +2,19 @@
 This Python application allows you to back up your anime and manga lists from the [AniList] website to a local MariaDB database. The program offers two main functionalities:
 1. **Full Backup**: Backs up your complete list of anime/manga.
 2. **Recent Update**: Automatically updates the list, adding or changing anime/manga entries until it detects that there are no more new or recently updated items to add.
+
+## 🎨 NEW: Graphical User Interface (GUI)
+
+A user-friendly GUI is now available! Perfect for users who prefer not to use the command line.
+
+**To use the GUI:**
+```bash
+python gui_main.py
+```
+
+![GUI Screenshot](https://github.com/user-attachments/assets/95b134bc-9104-406b-b3ee-8b538b01f93f)
+
+For detailed GUI usage instructions, see [GUI_README.md](GUI_README.md).
    
 ### Screenshots
 #### Full Backup
@@ -39,7 +52,15 @@ If you don't have MariaDB installed, you can use [XAMPP] as an easy way to get s
    ```bash 
    pip install -r requirements.txt
 ### Usage
-To run the program, execute one of the following scripts:
+
+#### Option 1: Graphical User Interface (Recommended for beginners)
+```bash
+python gui_main.py
+```
+See [GUI_README.md](GUI_README.md) for detailed instructions.
+
+#### Option 2: Command Line Interface
+To run the program from the command line, execute one of the following scripts:
 * Full Anime List Backup::
   ```bash
   python  take_full_anime_list.py
